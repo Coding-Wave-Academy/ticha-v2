@@ -1,0 +1,75 @@
+h1 {
+  padding-bottom: 2.3em;
+}
+
+.img-holder {
+  width: 100%;
+  height: auto;
+  margin: 24px auto;
+  max-width: 400px;
+}
+
+.img-holder img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.btn-holder {
+  display: flex;
+  gap: 1em;
+  margin: 2em auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-holder .button {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  h1 {
+    padding-bottom: 1.5em;
+    font-size: 28px;
+  }
+
+  .img-holder {
+    margin: 20px auto;
+  }
+
+  .btn-holder {
+    gap: 0.8em;
+    margin: 1.5em auto;
+  }
+
+  .btn-holder .button {
+    min-width: 120px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    padding-bottom: 1em;
+    font-size: 24px;
+  }
+
+  .img-holder {
+    margin: 16px auto;
+    max-width: 300px;
+  }
+
+  .btn-holder {
+    gap: 0.6em;
+    margin: 1em auto;
+    flex-direction: column;
+  }
+
+  .btn-holder .button {
+    width: 100%;
+    min-width: auto;
+    font-size: 14px;
+  }
+}

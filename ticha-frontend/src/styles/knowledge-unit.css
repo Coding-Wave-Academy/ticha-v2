@@ -1,0 +1,228 @@
+/* Knowledge Unit Screen Styles */
+.knowledge-unit-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #fafafa;
+}
+
+.knowledge-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #fff;
+  border-bottom: 3px solid #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.knowledge-header h1 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.back-btn {
+  background: none;
+  border: 2px solid #000;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  background: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.knowledge-content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.unit-section {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.unit-section h2 {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.unit-section p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 14px;
+  color: #333;
+}
+
+.examples-box {
+  background: #f5f5f5;
+  padding: 12px;
+  border-left: 4px solid #FFE082;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.unit-section.meta {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.difficulty-badge {
+  background: #B2FF59;
+  border: 2px solid #000;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* AI Section */
+.ai-section {
+  background: #fff9e6;
+  border: 3px dashed #FFE082;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-generate-btn {
+  background: #FFE082;
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: 'Impact', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ai-generate-btn:hover:not(:disabled) {
+  background: #FFD54F;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ai-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-explanation {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-header {
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #222;
+  border-bottom: 2px solid #FFE082;
+  padding-bottom: 8px;
+}
+
+.ai-subsection {
+  background: #fff;
+  border-left: 4px solid #FFE082;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.ai-subsection h3 {
+  font-size: 13px;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ai-subsection p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.ai-subsection.key {
+  background: #f0fff0;
+  border-left-color: #B2FF59;
+}
+
+.error-card {
+  color: #d32f2f;
+  background: #ffebee;
+  border-color: #d32f2f;
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .knowledge-header {
+    padding: 12px;
+  }
+
+  .knowledge-header h1 {
+    font-size: 16px;
+  }
+
+  .knowledge-content {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .unit-section {
+    padding: 12px;
+  }
+
+  .ai-generate-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}

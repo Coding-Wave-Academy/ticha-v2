@@ -1,0 +1,16 @@
+:root {
+  --yellow: #FFD400;
+  --green: #BCFF00;
+  --cream: #FFF8E6;
+  --black: #000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--cream);
+}

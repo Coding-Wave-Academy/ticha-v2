@@ -1,0 +1,144 @@
+.practice-screen {
+  min-height: 100vh;
+  background: var(--cream);
+  padding: 20px;
+  padding-bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.float-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+.practice-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  background: white;
+  border: 2px solid black;
+  box-shadow: 3px 3px 0 black;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.practice-card {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  border: 4px solid black;
+  box-shadow: 8px 8px 0 black;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.question-label {
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.question-text {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-btn {
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  background: white;
+  border: 3px solid black;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 black;
+  transition: all 0.1s;
+}
+
+.option-btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 black;
+}
+
+.option-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 black;
+}
+
+.option-btn.selected {
+  background: var(--yellow);
+}
+
+.option-btn.correct {
+  background: var(--green);
+}
+
+.option-btn.wrong {
+  background: #ff5252;
+  color: white;
+}
+
+.feedback-area {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fdf6e3;
+  border: 2px dashed black;
+  border-radius: 12px;
+}
+
+.feedback-title {
+  font-weight: 900;
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.feedback-text {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.next-action {
+  width: 100%;
+  max-width: 500px;
+  margin-top: auto;
+}
