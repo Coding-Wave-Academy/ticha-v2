@@ -1,4 +1,4 @@
-const API_URL = "https://api-v1-ticha-backend.onrender.com/"; // Empty string because vite proxy handles /api
+const API_URL = ""; // Empty string because vite proxy handles /api
 
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("ticha_token");
