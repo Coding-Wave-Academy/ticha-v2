@@ -153,9 +153,10 @@ export default function Chat() {
     }
   };
 
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+
   const startVoiceQuest = () => {
-    showToast("Opening Ticha's Voice Quest... 🎤", { type: "info" });
-    // The widget is now loaded globally and will appear on screen
+    setShowVoiceModal(true);
   };
 
   const handleActionClick = (action) => {
@@ -351,7 +352,63 @@ export default function Chat() {
         </div>
 
         <BottomNav />
-        <elevenlabs-convai agent-id="agent_3801ke5xsd5cfb883mbmfqa4apa0"></elevenlabs-convai>
+
+        {showVoiceModal && (
+          <div
+            className="modal-backdrop"
+            onClick={() => setShowVoiceModal(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(0,0,0,0.8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+            }}
+          >
+            <div
+              className="voice-modal-content"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: "transparent",
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+              }}
+            >
+              <button
+                onClick={() => setShowVoiceModal(false)}
+                style={{
+                  position: "absolute",
+                  top: "20px",
+                  right: "20px",
+                  background: "#fff",
+                  border: "2px solid #000",
+                  borderRadius: "50%",
+                  width: "40px",
+                  height: "40px",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  zIndex: 10000,
+                  fontWeight: "bold",
+                }}
+              >
+                ✕
+              </button>
+
+              {/* ElevenLabs Widget */}
+              <elevenlabs-convai agent-id="agent_3801ke5xsd5cfb883mbmfqa4apa0"></elevenlabs-convai>
+            </div>
+          </div>
+        )}
       </div>
     </MobileOnly>
   );

@@ -28,9 +28,10 @@ export default function BottomNav() {
     <div className="bottom-nav">
       {navItems.map((item, i) => (
         <div
+        style={{marginTop: "10px"}}
           key={`${item.label}-${i}`}
           className={`nav-item ${item.isCenter ? "center" : ""} ${
-            location.pathname === item.path ? "active" : ""
+            location.pathname === item.path ? "" : ""
           }`}
           onClick={() => navigate(item.path)}
         >

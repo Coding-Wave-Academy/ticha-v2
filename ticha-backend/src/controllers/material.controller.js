@@ -6,7 +6,8 @@ import { callLLM, callVisionLLM } from "../services/aiProvider.service.js";
 import { TICHA_SYSTEM_PROMPT } from "../prompts/ticha.system.prompt.js";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const pdf = require("pdf-parse");
+const pdfModule = require("pdf-parse");
+const pdf = pdfModule.default || pdfModule;
 
 export const uploadMaterial = async (req, res) => {
   try {
