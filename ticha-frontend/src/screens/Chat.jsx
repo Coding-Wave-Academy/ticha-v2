@@ -6,7 +6,7 @@ import BottomNav from "../components/BottomNav";
 import MobileOnly from "../components/MobileOnly";
 import { useToast } from "../context/ToastContext";
 import { apiFetch } from "../utils/api";
-import tichaIcon from "../assets/Ailogo.png";
+import tichaIcon from "../assets/AiLogo.png";
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -170,7 +170,9 @@ export default function Chat() {
             ←
           </button>
           <div className="chat-branding">
-            <div className="bot-avatar"><img src={tichaIcon} alt="" style={{width: 32}} /></div>
+            <div className="bot-avatar">
+              <img src={tichaIcon} alt="" style={{ width: 32 }} />
+            </div>
             <span className="bot-name">Ticha AI</span>
           </div>
           <button
@@ -229,7 +231,7 @@ export default function Chat() {
             <div className="chat-empty">
               <p className="chat-emoji">🧠</p>
               <p>
-                Hello! I'm your AI study assistant. How can I help with your
+                Hello! I'm your study assistant. How can I help with your
                 lessons today?
               </p>
             </div>
@@ -239,7 +241,9 @@ export default function Chat() {
               {messages.map((msg) => (
                 <div key={msg.id} className={`message ${msg.role}`}>
                   {msg.role === "assistant" && (
-                    <div className="message-avatar">🤖</div>
+                    <div className="message-avatar">
+                      <img src={tichaIcon} alt="" style={{ width: 32 }} />
+                    </div>
                   )}
                   <div className="message-bubble">
                     <div className="message-content">
