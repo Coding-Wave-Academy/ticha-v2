@@ -6,6 +6,7 @@ import BottomNav from "../components/BottomNav";
 import MobileOnly from "../components/MobileOnly";
 import { useToast } from "../context/ToastContext";
 import { apiFetch } from "../utils/api";
+import tichaIcon from "../assets/Ailogo.png";
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -158,7 +159,7 @@ export default function Chat() {
     <MobileOnly>
       <div className="chat-screen">
         <div className="chat-top-header">
-          <span className="chat-screen-title">Chat Screen</span>
+          <span className="chat-screen-title">Personalized Chat</span>
         </div>
 
         <div className="chat-header">
@@ -170,7 +171,7 @@ export default function Chat() {
           </button>
           <div className="chat-branding">
             <div className="bot-avatar">🤖</div>
-            <span className="bot-name">EduBot AI</span>
+            <span className="bot-name">Ticha AI</span>
           </div>
           <button
             className="header-menu-btn"
