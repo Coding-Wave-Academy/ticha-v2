@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/api";
 import { useToast } from "../context/ToastContext";
 import fireIcon from "../assets/icons/fire.png";
+import tichaIcon from "../assets/AiLogo.png";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -255,9 +256,10 @@ export default function Dashboard() {
         </div>
 
         {/* Featured / Upgrade Plan */}
+        <h4>Featured</h4>
         <div className="featured" onClick={() => setShowPaymentModal(true)}>
           <div className="featured-content">
-            <div className="featured-icon">🚀</div>
+            <div className="featured-icon"><img style={{width: 50}} src={tichaIcon} alt="Ticha Mascot" /></div>
             <div>
               <p className="featured-label">Upgrade your plan</p>
               <h4>

@@ -82,14 +82,16 @@
   position: absolute;
   top: 35%; /* Approx center of image */
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
+  transform: translate(-50%, 15%);
+  background: var(--green);
+  border: 3px solid #000;
+  border-radius: .4em;
+  width: 65px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   font-size: 24px;
   pointer-events: none;
 }

@@ -1,5 +1,5 @@
 .dashboard {
-  padding: 16px;
+  padding: 32px;
   padding-bottom: 90px;
   background: var(--bg-color, #f5f5dc);
   min-height: 100vh;
@@ -143,7 +143,7 @@
 
 /* Streak Card */
 .streak-card {
-  margin-top: 16px;
+  margin: 2.5em auto;
   padding: 16px;
   background: linear-gradient(135deg, #ffb347 0%, #ffb347 100%);
   border-radius: 14px;
@@ -217,6 +217,7 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 20px;
+  margin-bottom: 2.5em;
   text-align: center;
 }
 

@@ -4,6 +4,8 @@ import "../styles/variables.css";
 import BottomNav from "../components/BottomNav";
 import { apiFetch } from "../utils/api";
 import MobileOnly from "../components/MobileOnly";
+// import searchIcon from "../assets/icons/search.svg";
+
 
 export default function VideoLibrary() {
   const [videos, setVideos] = useState([]);
