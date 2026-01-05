@@ -170,7 +170,7 @@ export default function Chat() {
             ←
           </button>
           <div className="chat-branding">
-            <div className="bot-avatar">🤖</div>
+            <div className="bot-avatar"><img src={tichaIcon} alt="" style={{width: 32}} /></div>
             <span className="bot-name">Ticha AI</span>
           </div>
           <button
