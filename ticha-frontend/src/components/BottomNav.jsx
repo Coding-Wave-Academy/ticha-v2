@@ -1,10 +1,10 @@
 import "../styles/bottom-nav.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import chatIcon from '../assets/icons/chat.png'
-import dashboardIcon from '../assets/icons/dashboard.png'
-import profileIcon from '../assets/icons/profile.png'
-import videoIcon from '../assets/icons/video.png'
-import exploreIcon from '../assets/icons/explore.png'
+import chatIcon from "../assets/icons/chat.png";
+import dashboardIcon from "../assets/icons/dashboard.png";
+import profileIcon from "../assets/icons/profile.png";
+import videoIcon from "../assets/icons/video.png";
+import exploreIcon from "../assets/icons/explore.png";
 // import chatIcon from '../assets/icons/chat.png'
 
 export default function BottomNav() {
@@ -17,11 +17,11 @@ export default function BottomNav() {
   }
 
   const navItems = [
-    { icon: {dashboardIcon}, label: "Home", path: "/dashboard" },
-    { icon: {exploreIcon}, label: "Explore", path: "/explore" },
-    { icon: {chatIcon}, label: "Chat", path: "/chat", isCenter: true },
-    { icon: {videoIcon}, label: "Video", path: "/video" },
-    { icon: {profileIcon}, label: "Profile", path: "/profile" },
+    { icon: dashboardIcon, label: "Home", path: "/dashboard" },
+    { icon: exploreIcon, label: "Explore", path: "/explore" },
+    { icon: chatIcon, label: "Chat", path: "/chat", isCenter: true },
+    { icon: videoIcon, label: "Video", path: "/video" },
+    { icon: profileIcon, label: "Profile", path: "/profile" },
   ];
 
   return (
@@ -34,7 +34,9 @@ export default function BottomNav() {
           }`}
           onClick={() => navigate(item.path)}
         >
-          <span>{item.icon}</span>
+          <span>
+            <img src={item.icon} alt={item.label} style={{ width: 24 }} />
+          </span>
           <span className="nav-label">{item.label}</span>
         </div>
       ))}

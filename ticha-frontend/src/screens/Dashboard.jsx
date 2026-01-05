@@ -240,9 +240,8 @@ export default function Dashboard() {
                 }
               >
                 <span className="action-icon">
-                  {(typeof action.icon === "string" &&
-                    action.icon.startsWith("http")) ||
-                  action.icon.includes("/assets/") ? (
+                  {typeof action.icon === "string" &&
+                  (action.icon.length > 4 || action.icon.includes("/")) ? (
                     <img src={action.icon} alt="" style={{ width: 24 }} />
                   ) : (
                     action.icon
