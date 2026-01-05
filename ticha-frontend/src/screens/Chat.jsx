@@ -142,6 +142,12 @@ export default function Chat() {
     }
   };
 
+  const startVoiceQuest = () => {
+    // This will be handled by the ElevenLabs component/modal
+    showToast("Opening Ticha's Voice Quest... 🎤", { type: "info" });
+    // Logic to open voice modal or activate ElevenLabs
+  };
+
   const handleActionClick = (action) => {
     sendMessage(action);
   };
@@ -234,6 +240,24 @@ export default function Chat() {
                 Hello! I'm your study assistant. How can I help with your
                 lessons today?
               </p>
+              <div className="quick-suggestions">
+                <button
+                  className="suggest-btn"
+                  onClick={() =>
+                    sendMessage(
+                      "Explain the current topic in the curriculum step-by-step"
+                    )
+                  }
+                >
+                  📖 Explain Curriculum
+                </button>
+                <button
+                  className="suggest-btn voice-special"
+                  onClick={startVoiceQuest}
+                >
+                  🎤 Know Me Better (Voice)
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -276,7 +300,9 @@ export default function Chat() {
           )}
           {loading && (
             <div className="message assistant">
-              <div className="message-avatar">🤖</div>
+              <div className="message-avatar">
+                <img src={tichaIcon} alt="" style={{ width: 32 }} />
+              </div>
               <div className="message-bubble">
                 <div className="message-content">
                   <span className="typing-indicator">

@@ -138,38 +138,82 @@ export default function SummaryPage() {
           </div>
         )}
 
-        <div className="upload-section">
-          <h2>Upload Notes, PDF, or Image</h2>
-          <input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={handleFileSelect}
-            className="file-input"
-          />
-
-          {preview && !summaryData && (
-            <div className="image-preview">
-              <img src={preview} alt="Uploaded Notes" />
+        <div className="upload-section modern-card">
+          <div className="card-accent"></div>
+          <div className="upload-content">
+            <div className="upload-icon-wrapper">
+              <span className="upload-emoji">📥</span>
             </div>
-          )}
+            <h2>Import Materials</h2>
+            <p>
+              Upload your notes, PDFs, or photos. Our AI will analyze them in
+              seconds.
+            </p>
 
-          {selectedFile && !preview && (
-            <div style={{ marginTop: 10, fontWeight: "bold" }}>
-              📄 {selectedFile.name}
-            </div>
-          )}
+            <label className="custom-file-upload">
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleFileSelect}
+                className="file-input-hidden"
+              />
+              <div className="upload-design">
+                <span className="design-icon">
+                  {selectedFile ? "✅" : "📁"}
+                </span>
+                <span className="design-text">
+                  {selectedFile ? selectedFile.name : "Choose File"}
+                </span>
+              </div>
+            </label>
 
-          <button
-            className="button"
-            style={{
-              marginTop: 16,
-              background: selectedFile && !loading ? "var(--green)" : "#ccc",
-            }}
-            disabled={!selectedFile || loading}
-            onClick={generateSummary}
-          >
-            {loading ? "ANALYZING..." : "GENERATE SUMMARY"}
-          </button>
+            {preview && !summaryData && (
+              <div className="image-preview-premium">
+                <img src={preview} alt="Uploaded Notes" />
+                <button
+                  className="remove-preview"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreview(null);
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            {selectedFile && !preview && !summaryData && (
+              <div className="file-chip">
+                <span>📄 {selectedFile.name}</span>
+                <button
+                  className="remove-file"
+                  onClick={() => setSelectedFile(null)}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+
+            <button
+              className={`generate-btn ${
+                selectedFile && !loading ? "active" : ""
+              }`}
+              disabled={!selectedFile || loading}
+              onClick={generateSummary}
+            >
+              {loading ? (
+                <div className="loader-wrapper">
+                  <div className="mini-loader"></div>
+                  <span>ANALYZING...</span>
+                </div>
+              ) : (
+                <>
+                  <span>GENERATE SUMMARY</span>
+                  <span className="sparkle-icon">✨</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {summaryData && (

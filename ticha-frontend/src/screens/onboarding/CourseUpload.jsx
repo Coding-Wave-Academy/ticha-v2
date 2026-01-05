@@ -213,56 +213,42 @@ export default function CourseUpload() {
       </p>
 
       <div
-        style={{
-          border: "3px dashed #000",
-          borderRadius: "12px",
-          padding: "32px",
-          textAlign: "center",
-          marginBottom: 24,
-          backgroundColor: file ? "#f0fff4" : "#fff",
-          maxWidth: 500,
-          width: "100%",
-          boxSizing: "border-box",
-        }}
+        className="upload-section modern-card"
+        style={{ maxWidth: 500, width: "100%" }}
       >
-        <input
-          type="file"
-          accept=".pdf,image/*"
-          onChange={(e) => setFile(e.target.files[0])}
-          style={{
-            display: "none",
-          }}
-          id="file-input"
-        />
-        <label
-          htmlFor="file-input"
-          style={{
-            cursor: "pointer",
-            display: "block",
-            fontWeight: "bold",
-          }}
-        >
-          {file ? (
-            <>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>✓</div>
-              <div style={{ fontSize: 14, fontWeight: "bold" }}>
-                {file.name}
-              </div>
-              <div style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
-                {language === "fr" ? "Cliquez pour changer" : "Click to change"}
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontSize: 40, marginBottom: 12 }}>📄</div>
-              <div style={{ fontSize: 14 }}>
-                {language === "fr"
-                  ? "Cliquez pour importer ou glissez un fichier"
-                  : "Click to upload or drag a file"}
-              </div>
-            </>
-          )}
-        </label>
+        <div className="card-accent"></div>
+        <div className="upload-content">
+          <div className="upload-icon-wrapper">
+            <span className="upload-emoji">📄</span>
+          </div>
+          <input
+            type="file"
+            accept=".pdf,image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            style={{ display: "none" }}
+            id="file-input"
+          />
+          <label
+            htmlFor="file-input"
+            style={{ cursor: "pointer", width: "100%" }}
+          >
+            <div className={`upload-design ${file ? "has-file" : ""}`}>
+              <span className="design-icon">{file ? "✅" : "📁"}</span>
+              <span className="design-text">
+                {file
+                  ? file.name
+                  : language === "fr"
+                  ? "Choisir un fichier"
+                  : "Choose File"}
+              </span>
+            </div>
+          </label>
+          <p style={{ marginTop: 16, fontSize: 12, color: "#666" }}>
+            {language === "fr"
+              ? "Clique ou glisse ton document ici"
+              : "Click or drag your document here"}
+          </p>
+        </div>
       </div>
 
       <div
