@@ -1,4 +1,4 @@
-const API_URL = ""; // Empty string because vite proxy handles /api
+const API_URL = import.meta.env.VITE_API_URL || ""; // Use ENV in production, empty in dev for proxy
 
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("ticha_token");
