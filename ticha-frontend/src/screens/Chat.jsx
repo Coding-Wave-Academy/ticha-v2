@@ -49,6 +49,17 @@ export default function Chat() {
       }
     };
     initChat();
+
+    // Load ElevenLabs ConvAI widget script
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
+    script.async = true;
+    script.type = "text/javascript";
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
   }, []);
 
   const createChatSession = async (title = "New Chat") => {
@@ -143,9 +154,8 @@ export default function Chat() {
   };
 
   const startVoiceQuest = () => {
-    // This will be handled by the ElevenLabs component/modal
     showToast("Opening Ticha's Voice Quest... 🎤", { type: "info" });
-    // Logic to open voice modal or activate ElevenLabs
+    // The widget is now loaded globally and will appear on screen
   };
 
   const handleActionClick = (action) => {
@@ -341,6 +351,7 @@ export default function Chat() {
         </div>
 
         <BottomNav />
+        <elevenlabs-convai agent-id="agent_3801ke5xsd5cfb883mbmfqa4apa0"></elevenlabs-convai>
       </div>
     </MobileOnly>
   );
