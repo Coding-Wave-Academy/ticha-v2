@@ -6,9 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { apiFetch } from "../utils/api";
 import { useToast } from "../context/ToastContext";
-import fireIcon from '../assets/icons/fire.png'
-
-
+import fireIcon from "../assets/icons/fire.png";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,7 +66,7 @@ export default function Dashboard() {
   };
 
   const quickActions = [
-    { icon: {fireIcon}, label: "Daily Task", path: "/daily-task" },
+    { icon: fireIcon, label: "Daily Task", path: "/daily-task" },
     { icon: "📋", label: "Summaries", path: "/summaries" },
     { icon: "📅", label: "Timetable", path: "/timetable" },
     { icon: "✍️", label: "Practice", path: "/practice" },
@@ -146,7 +144,9 @@ export default function Dashboard() {
 
           <div className="dashboard-header-icons">
             <div className="dashboard-streak-badge">
-              <span className="fire">{fireIcon}</span>
+              <span className="fire">
+                <img src={fireIcon} alt="streak" style={{ width: 18 }} />
+              </span>
               <span className="streak-count">{streak}</span>
             </div>
 
@@ -160,7 +160,9 @@ export default function Dashboard() {
         {/* Streak Card */}
         <div className="streak-card">
           <div className="streak-top">
-            <div className="streak-icon">{fireIcon}</div>
+            <div className="streak-icon">
+              <img src={fireIcon} alt="fire" style={{ width: 32 }} />
+            </div>
             <div className="streak-info">
               <h3>{streak} DAYS STREAK!</h3>
               <p className="streak-subtitle">
@@ -237,7 +239,15 @@ export default function Dashboard() {
                     : { backgroundColor: "#F8BBD0" }
                 }
               >
-                <span className="action-icon">{action.icon}</span>
+                <span className="action-icon">
+                  {(typeof action.icon === "string" &&
+                    action.icon.startsWith("http")) ||
+                  action.icon.includes("/assets/") ? (
+                    <img src={action.icon} alt="" style={{ width: 24 }} />
+                  ) : (
+                    action.icon
+                  )}
+                </span>
                 {i === 0 && <span className="action-badge">3</span>}
               </div>
               <div className="action-label">{action.label}</div>
