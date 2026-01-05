@@ -52,7 +52,7 @@ export default function Chat() {
 
     // Load ElevenLabs ConvAI widget script
     const script = document.createElement("script");
-    script.src = "https://unpkg.com/@elevenlabs/convai-widget-embed";
+    script.src = "https://elevenlabs.io/app/talk-to?agent_id=agent_3801ke5xsd5cfb883mbmfqa4apa0&branch_id=agtbrch_4001ke5xsexjew6rps29mfd4zzm4";
     script.async = true;
     script.type = "text/javascript";
     document.body.appendChild(script);
