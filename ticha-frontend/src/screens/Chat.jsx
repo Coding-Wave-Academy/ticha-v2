@@ -30,25 +30,15 @@ export default function Chat() {
 
   // Initial load
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:32',message:'Chat init start',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     const initChat = async () => {
       try {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:35',message:'Fetching sessions',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         const sessionList = await apiFetch("/api/ai/sessions");
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:37',message:'Sessions loaded',data:{sessionCount:sessionList.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
+
         setSessions(sessionList);
 
         if (sessionList.length > 0) {
           // Auto-load most recent session
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:40',message:'Switching to first session',data:{sessionId:sessionList[0].id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-          // #endregion
+
           switchSession(sessionList[0].id);
         } else {
           // No sessions yet, wait for first message to create one
@@ -58,45 +48,27 @@ export default function Chat() {
         }
       } catch (err) {
         console.error("Init chat error:", err);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:48',message:'Init chat error',data:{errorMessage:err.message,errorName:err.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
       }
     };
     initChat();
 
     // Load ElevenLabs ConvAI widget script
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:68',message:'Loading ElevenLabs script',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    
+
     // Check if script already exists
     let script = document.querySelector('script[src*="elevenlabs.io"]');
-    
+
     if (!script) {
       script = document.createElement("script");
       script.src = "https://elevenlabs.io/convai-widget/index.js";
       script.async = true;
       script.type = "text/javascript";
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:76',message:'Creating new script element',data:{src:script.src},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
-      
+
       script.onload = () => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:79',message:'Script onload fired',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
         // Wait for custom element to be defined
         const checkCustomElement = () => {
-          // #region agent log
-          const isDefined = customElements.get('elevenlabs-convai') !== undefined;
-          fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:82',message:'Checking custom element',data:{isDefined,customElementsAvailable:typeof customElements !== 'undefined'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-          // #endregion
+          const isDefined =
+            customElements.get("elevenlabs-convai") !== undefined;
           if (isDefined) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:85',message:'Custom element defined, setting ready',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-            // #endregion
             setElevenLabsReady(true);
           } else {
             setTimeout(checkCustomElement, 100);
@@ -104,72 +76,48 @@ export default function Chat() {
         };
         setTimeout(checkCustomElement, 100);
       };
-      
+
       script.onerror = (err) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:93',message:'Script load error',data:{error:err?.message || 'Unknown error'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
-        console.error('Failed to load ElevenLabs script:', err);
+        console.error("Failed to load ElevenLabs script:", err);
       };
-      
+
       document.head.appendChild(script);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:99',message:'Script appended to head',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
     } else {
       // Script already exists, check if custom element is defined
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:102',message:'Script already exists',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
-      if (customElements.get('elevenlabs-convai')) {
+
+      if (customElements.get("elevenlabs-convai")) {
         setElevenLabsReady(true);
       }
     }
 
     return () => {
       // Don't remove script on cleanup - keep it loaded for better UX
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:110',message:'Component cleanup (script kept)',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
     };
   }, []);
 
   const createChatSession = async (title = "New Chat") => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:65',message:'createChatSession entry',data:{title},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     try {
       const session = await apiFetch("/api/ai/sessions", {
         method: "POST",
         body: JSON.stringify({ title }),
       });
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:71',message:'Session created',data:{sessionId:session.id,title:session.title},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
+
       setSessions([session, ...sessions]);
       setCurrentSessionId(session.id);
       setMessages([]);
       return session;
     } catch (err) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:76',message:'createChatSession error',data:{errorMessage:err.message,errorName:err.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       showToast("Failed to create session", { type: "error" });
     }
   };
 
   const switchSession = async (sessionId) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:80',message:'switchSession entry',data:{sessionId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     setLoading(true);
     setCurrentSessionId(sessionId);
     setShowSessions(false);
     try {
       const history = await apiFetch(`/api/ai/sessions/${sessionId}`);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:86',message:'Session history loaded',data:{sessionId,messageCount:history.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
+
       setMessages(
         history.map((m) => ({
           role: m.role === "student" ? "user" : "assistant",
@@ -178,9 +126,6 @@ export default function Chat() {
         }))
       );
     } catch (err) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:94',message:'switchSession error',data:{sessionId,errorMessage:err.message,errorName:err.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       showToast("Failed to load history", { type: "error" });
     } finally {
       setLoading(false);
@@ -188,9 +133,6 @@ export default function Chat() {
   };
 
   const sendMessage = async (messageText = null) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:100',message:'sendMessage entry',data:{messageText,hasInput:!!input.trim(),currentSessionId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     const msgToSend = messageText || input.trim();
     if (!msgToSend) return;
 
@@ -199,9 +141,6 @@ export default function Chat() {
     // If no session exists, create one first
     let activeSessionId = currentSessionId;
     if (!activeSessionId) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:109',message:'Creating session before send',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const sess = await createChatSession(msgToSend.substring(0, 20) + "...");
       if (!sess) return; // Stop if session creation failed
       activeSessionId = sess.id;
@@ -214,9 +153,6 @@ export default function Chat() {
 
     setLoading(true);
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:121',message:'Sending chat message',data:{messageLength:msgToSend.length,sessionId:activeSessionId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const data = await apiFetch("/api/ai/chat", {
         method: "POST",
         body: JSON.stringify({
@@ -225,9 +161,6 @@ export default function Chat() {
         }),
       });
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:129',message:'Chat response received',data:{hasReply:!!data.reply,hasResponse:!!data.response,dataKeys:Object.keys(data)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const reply = data.reply || data.response || JSON.stringify(data);
 
       setMessages((prev) => [
@@ -241,9 +174,7 @@ export default function Chat() {
       ]);
     } catch (err) {
       console.error("Chat error:", err);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:141',message:'sendMessage error',data:{errorMessage:err.message,errorName:err.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
+
       showToast(`Error: ${err.message}`, { type: "error", duration: 4000 });
       setMessages((prev) => prev.slice(0, -1));
     } finally {
@@ -510,20 +441,17 @@ export default function Chat() {
                 ✕
               </button>
 
-              {/* ElevenLabs Widget */}
-              {elevenLabsReady ? (
-                // #region agent log
-                (() => {
-                  fetch('http://127.0.0.1:7242/ingest/598c0515-9456-49ad-822a-da02ac7c7787',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Chat.jsx:474',message:'Rendering ElevenLabs widget',data:{elevenLabsReady},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-                  return null;
-                })()
-                // #endregion
-              ) : null}
               {elevenLabsReady && (
                 <elevenlabs-convai agent-id="agent_3801ke5xsd5cfb883mbmfqa4apa0"></elevenlabs-convai>
               )}
               {!elevenLabsReady && (
-                <div style={{ color: 'white', textAlign: 'center', padding: '20px' }}>
+                <div
+                  style={{
+                    color: "white",
+                    textAlign: "center",
+                    padding: "20px",
+                  }}
+                >
                   Loading voice assistant...
                 </div>
               )}
