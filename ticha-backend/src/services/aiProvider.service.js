@@ -102,7 +102,8 @@ const providers = [
       });
       const isJSON = system.includes("JSON") || user.includes("JSON");
       const suffix = isJSON ? "" : SYSTEM_INSTRUCTION_SUFFIX;
-      const prompt = `${system} ${suffix}\n\nUser Question: ${user}`;
+      const truncatedUser = (user || "").substring(0, 15000);
+      const prompt = `${system} ${suffix}\n\nUser Question: ${truncatedUser}`;
       const result = await model.generateContent(prompt);
       return result.response.text();
     },
@@ -110,7 +111,13 @@ const providers = [
       const model = getGemini().getGenerativeModel({
         model: "gemini-1.5-flash",
       });
-      const prompt = `${system} ${SYSTEM_INSTRUCTION_SUFFIX}\n\n${user}`;
+      const isJSON =
+        system.includes("JSON") ||
+        user.includes("JSON") ||
+        system.includes("OCR") ||
+        user.includes("OCR");
+      const suffix = isJSON ? "" : SYSTEM_INSTRUCTION_SUFFIX;
+      const prompt = `${system} ${suffix}\n\n${user}`;
       const imagePart = {
         inlineData: {
           data: base64,
@@ -146,22 +153,34 @@ const providers = [
 async function callOpenAICompatible(client, model, system, user) {
   const isJSON = system.includes("JSON") || user.includes("JSON");
   const suffix = isJSON ? "" : SYSTEM_INSTRUCTION_SUFFIX;
+
+  // Truncate user prompt to 12k chars to fit in context for mini models
+  const truncatedUser = (user || "").substring(0, 12000);
+
   const response = await client.chat.completions.create({
     model: model,
     messages: [
       { role: "system", content: system + suffix },
-      { role: "user", content: user },
+      { role: "user", content: truncatedUser },
     ],
     temperature: 0.3,
+    max_tokens: 4000,
   });
   return response.choices[0].message.content;
 }
 
 async function callOpenAIVision(client, model, system, user, imageBase64) {
+  const isJSON =
+    system.includes("JSON") ||
+    user.includes("JSON") ||
+    system.includes("OCR") ||
+    user.includes("OCR");
+  const suffix = isJSON ? "" : SYSTEM_INSTRUCTION_SUFFIX;
+
   const response = await client.chat.completions.create({
     model: model,
     messages: [
-      { role: "system", content: system + SYSTEM_INSTRUCTION_SUFFIX },
+      { role: "system", content: system + suffix },
       {
         role: "user",
         content: [
@@ -173,7 +192,7 @@ async function callOpenAIVision(client, model, system, user, imageBase64) {
         ],
       },
     ],
-    max_tokens: 1000,
+    max_tokens: 2000,
   });
   return response.choices[0].message.content;
 }

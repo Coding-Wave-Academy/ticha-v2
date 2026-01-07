@@ -51,7 +51,9 @@ export default function Practice() {
       setResults([]);
       setView("quiz");
     } catch (err) {
-      showToast("Failed to generate quiz from file", { type: "error" });
+      showToast(err.message || "Failed to generate quiz from file", {
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

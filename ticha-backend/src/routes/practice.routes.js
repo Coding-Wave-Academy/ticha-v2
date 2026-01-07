@@ -27,46 +27,70 @@ router.post(
   upload.single("file"),
   async (req, res) => {
     try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: "No file was uploaded. Please select a PDF or Image.",
+        });
+      }
+
       const userId = req.user.userId;
       let content = "";
       const fileName = req.file.originalname;
 
       if (req.file.mimetype === "application/pdf") {
-        const dataBuffer = req.file.buffer;
-        const pdfData = await pdf(dataBuffer);
-        content = pdfData.text;
+        try {
+          const dataBuffer = req.file.buffer;
+          const pdfData = await pdf(dataBuffer);
+          content = pdfData.text;
+        } catch (pdfErr) {
+          console.error("PDF Parse Error:", pdfErr);
+          throw new Error(
+            "Failed to read PDF content. It might be corrupt or password protected."
+          );
+        }
       } else if (req.file.mimetype.startsWith("image/")) {
-        const base64Image = req.file.buffer.toString("base64");
-        content = await callVisionLLM({
-          systemPrompt:
-            "You are an expert OCR assistant. Extract ALL text from this question paper exactly as it appears. Include question numbers and options.",
-          userPrompt:
-            "Extract the text from this past question image so I can generate a quiz from it.",
-          imageBase64: base64Image,
-          preferredProvider: "grok",
-        });
+        try {
+          const base64Image = req.file.buffer.toString("base64");
+          content = await callVisionLLM({
+            systemPrompt:
+              "You are an expert OCR assistant. Extract ALL text from this question paper exactly as it appears. Include question numbers and options.",
+            userPrompt:
+              "Extract the text from this past question image so I can generate a quiz from it.",
+            imageBase64: base64Image,
+            preferredProvider: "grok",
+          });
+        } catch (visionErr) {
+          console.error("Vision Error:", visionErr);
+          throw new Error(
+            "Vision AI failed to read your image. Try a clearer photo or a PDF."
+          );
+        }
       }
 
-      if (!content) {
+      if (!content || content.trim().length < 10) {
         return res
           .status(400)
-          .json({ error: "Could not extract text from file." });
+          .json({
+            error:
+              "Could not extract enough text from file to generate a quiz.",
+          });
       }
+
+      // Truncate to avoid token limits (approx 8k chars)
+      const truncatedContent = content.substring(0, 8000);
 
       // Now generate a quiz from this content
       const quiz = await generateFullQuiz({
         title: fileName,
-        raw_text: content,
+        raw_text: truncatedContent,
       });
       res.json(quiz);
     } catch (err) {
       console.error("Quiz generation from file error:", err);
-      res
-        .status(500)
-        .json({
-          error: "Failed to process file and generate quiz",
-          details: err.message,
-        });
+      res.status(500).json({
+        error: "Failed to process file and generate quiz",
+        details: err.message,
+      });
     }
   }
 );
