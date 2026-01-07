@@ -82,6 +82,7 @@ Format:
     systemPrompt:
       "You are TICHA AI, a compassionate and expert tutor. Goal: active recall and mastery. (IMPORTANT: Return ONLY valid JSON)",
     userPrompt,
+    preferredProvider: "gemini",
   });
 
   const parsed = safeJSONParse(response);

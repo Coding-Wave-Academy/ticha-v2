@@ -33,6 +33,12 @@ router.post(
         });
       }
 
+      if (req.file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({
+          error: "File is too large. Please upload a file smaller than 10MB.",
+        });
+      }
+
       const userId = req.user.userId;
       let content = "";
       const fileName = req.file.originalname;
@@ -57,7 +63,7 @@ router.post(
             userPrompt:
               "Extract the text from this past question image so I can generate a quiz from it.",
             imageBase64: base64Image,
-            preferredProvider: "grok",
+            preferredProvider: "gemini",
           });
         } catch (visionErr) {
           console.error("Vision Error:", visionErr);
@@ -68,12 +74,9 @@ router.post(
       }
 
       if (!content || content.trim().length < 10) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Could not extract enough text from file to generate a quiz.",
-          });
+        return res.status(400).json({
+          error: "Could not extract enough text from file to generate a quiz.",
+        });
       }
 
       // Truncate to avoid token limits (approx 8k chars)
@@ -87,8 +90,11 @@ router.post(
       res.json(quiz);
     } catch (err) {
       console.error("Quiz generation from file error:", err);
+      const detailedError = err.message
+        ? err.message
+        : "Failed to process file and generate quiz";
       res.status(500).json({
-        error: "Failed to process file and generate quiz",
+        error: detailedError,
         details: err.message,
       });
     }

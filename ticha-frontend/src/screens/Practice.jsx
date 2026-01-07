@@ -105,6 +105,8 @@ export default function Practice() {
     } catch (err) {
       showToast("Failed to generate feedback", { type: "error" });
       setView("upload");
+      // Optional: Clear file on critical failure to encourage retry with different file
+      // setSelectedFile(null);
     } finally {
       setLoading(false);
     }
