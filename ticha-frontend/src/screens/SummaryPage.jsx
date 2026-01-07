@@ -2,18 +2,18 @@ import "../styles/summary.css";
 import MobileOnly from "../components/MobileOnly";
 import BottomNav from "../components/BottomNav";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiFetch } from "../utils/api";
 import { useToast } from "../context/ToastContext";
-import ProgressDots from "../components/ProgressDots"; // Optional visual
 
 export default function SummaryPage() {
+  const { id } = useParams();
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -25,7 +25,7 @@ export default function SummaryPage() {
       if (file.type.startsWith("image/")) {
         setPreview(URL.createObjectURL(file));
       } else {
-        setPreview(null); // No preview for PDF
+        setPreview(null);
       }
     }
   };
@@ -34,6 +34,18 @@ export default function SummaryPage() {
     try {
       const data = await apiFetch("/api/materials/summaries/history");
       setHistory(data);
+
+      // If ID is present in URL, find and load it
+      if (id && data.length > 0) {
+        const item = data.find((s) => s.id === id);
+        if (item) {
+          const content =
+            typeof item.content === "string"
+              ? JSON.parse(item.content)
+              : item.content;
+          setSummaryData(content);
+        }
+      }
     } catch (err) {
       console.error("Failed to fetch history:", err);
     }
@@ -41,7 +53,7 @@ export default function SummaryPage() {
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [id]);
 
   const generateSummary = async () => {
     if (!selectedFile) return;
@@ -59,7 +71,8 @@ export default function SummaryPage() {
 
       setSummaryData(data.summary);
       showToast("Summary generated successfully!", { type: "success" });
-      fetchHistory(); // Refresh history
+      setIsUploading(false);
+      fetchHistory();
     } catch (err) {
       console.error(err);
       showToast("Failed to generate summary.", { type: "error" });
@@ -69,235 +82,262 @@ export default function SummaryPage() {
   };
 
   const loadSummary = (item) => {
-    try {
-      const content =
-        typeof item.content === "string"
-          ? JSON.parse(item.content)
-          : item.content;
-      setSummaryData(content);
-      setShowHistory(false);
-      showToast(`Loaded: ${item.title}`, { type: "info" });
-    } catch (e) {
-      showToast("Error loading summary", { type: "error" });
-    }
+    navigate(`/summary/${item.id}`);
+    setIsUploading(false);
   };
 
   return (
     <MobileOnly>
       <div className="summary-page">
         <div className="summary-header">
-          <button onClick={() => navigate(-1)} className="back-button-new">
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="back-button-new"
+          >
             ←
           </button>
-          <h1>AI SUMMARIZER</h1>
-          <button
-            className="menu-button"
-            onClick={() => setShowHistory(!showHistory)}
-          >
-            ⋮
-          </button>
+          <h1>
+            {isUploading
+              ? "IMPORT NOTES"
+              : summaryData
+              ? "SUMMARY"
+              : "MY SUMMARIES"}
+          </h1>
+          <div style={{ width: 40 }} />
         </div>
 
-        {showHistory && (
-          <div
-            className="history-overlay"
-            onClick={() => setShowHistory(false)}
-          >
-            <div
-              className="history-dropdown"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="history-header">
-                <h3>Previous Summaries</h3>
-                <button onClick={() => setShowHistory(false)}>×</button>
-              </div>
-              <div className="history-list">
-                {history.length === 0 && (
-                  <p style={{ padding: 20, textAlign: "center" }}>
-                    No history yet
-                  </p>
-                )}
-                {history.map((item) => (
-                  <div
-                    key={item.id}
-                    className="history-item"
-                    onClick={() => loadSummary(item)}
-                  >
-                    <div className="history-icon">📄</div>
-                    <div className="history-info">
-                      <div className="history-title">{item.title}</div>
-                      <div className="history-meta">
-                        {item.category} •{" "}
-                        {new Date(item.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="upload-section modern-card">
-          <div className="card-accent"></div>
-          <div className="upload-content">
-            <div className="upload-icon-wrapper">
-              <span className="upload-emoji">📥</span>
-            </div>
-            <h2>Import Materials</h2>
-            <p>
-              Upload your notes, PDFs, or photos. Our AI will analyze them in
-              seconds.
-            </p>
-
-            <label className="custom-file-upload">
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={handleFileSelect}
-                className="file-input-hidden"
-              />
-              <div className="upload-design">
-                <span className="design-icon">
-                  {selectedFile ? "✅" : "📁"}
-                </span>
-                <span className="design-text">
-                  {selectedFile ? selectedFile.name : "Choose File"}
-                </span>
-              </div>
-            </label>
-
-            {preview && !summaryData && (
-              <div className="image-preview-premium">
-                <img src={preview} alt="Uploaded Notes" />
-                <button
-                  className="remove-preview"
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPreview(null);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {selectedFile && !preview && !summaryData && (
-              <div className="file-chip">
-                <span>📄 {selectedFile.name}</span>
-                <button
-                  className="remove-file"
-                  onClick={() => setSelectedFile(null)}
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            <button
-              className={`generate-btn ${
-                selectedFile && !loading ? "active" : ""
-              }`}
-              disabled={!selectedFile || loading}
-              onClick={generateSummary}
-            >
-              {loading ? (
-                <div className="loader-wrapper">
-                  <div className="mini-loader"></div>
-                  <span>ANALYZING...</span>
-                </div>
-              ) : (
-                <>
-                  <span>GENERATE SUMMARY</span>
-                  <span className="sparkle-icon">✨</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {summaryData && (
-          <div className="summary-actions">
-            <button
-              className="action-btn"
-              onClick={() =>
-                navigate("/practice", { state: { type: "flashcards" } })
-              }
-            >
-              🎴 Flashcards
-            </button>
-            <button
-              className="action-btn"
-              onClick={() =>
-                navigate("/practice", { state: { type: "mindmap" } })
-              }
-            >
-              🧠 Mindmaps
-            </button>
-            <button
-              className="action-btn"
-              onClick={() => navigate("/practice", { state: { type: "quiz" } })}
-            >
-              📝 Practice Quiz
-            </button>
-          </div>
-        )}
-
-        {summaryData && (
-          <div className="summary-results" style={{ marginTop: 24 }}>
-            <div className="summary-section highlight">
-              <h2>Overview</h2>
-              <p>{summaryData.overview}</p>
-            </div>
-
-            {summaryData.takeaway && (
-              <div className="takeaway-box">
-                <strong>Quick Takeaway:</strong> {summaryData.takeaway}
-              </div>
-            )}
-
-            {summaryData.keyPoints?.length > 0 && (
-              <div className="summary-section">
-                <h2>Key Points</h2>
-                <ul>
-                  {summaryData.keyPoints.map((point, i) => (
-                    <li key={i}>{point}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {summaryData.wowFact && (
-              <div className="wow-section">
-                <div className="wow-badge">AHA! MOMENT</div>
-                <p>{summaryData.wowFact}</p>
-              </div>
-            )}
-
-            {summaryData.example && (
+        {!isUploading && !summaryData && (
+          <div className="summary-history-list">
+            {history.length === 0 ? (
               <div
-                className="summary-section"
-                style={{ background: "#f0fff4" }}
+                className="modern-card"
+                style={{ textAlign: "center", padding: 40 }}
               >
-                <h2>Practical Example</h2>
-                <p>{summaryData.example}</p>
+                <span style={{ fontSize: 50 }}>📭</span>
+                <h3>No summaries yet</h3>
+                <p>Click the + button to start learning!</p>
               </div>
-            )}
-
-            {summaryData.reviewQuestions?.length > 0 && (
-              <div className="summary-section">
-                <h2>Review Questions</h2>
-                <ul>
-                  {summaryData.reviewQuestions.map((q, i) => (
-                    <li key={i}>{q}</li>
-                  ))}
-                </ul>
-              </div>
+            ) : (
+              history.map((item) => (
+                <div
+                  key={item.id}
+                  className="history-card"
+                  onClick={() => loadSummary(item)}
+                >
+                  <div className="icon">📄</div>
+                  <div className="info">
+                    <h4>{item.title}</h4>
+                    <p>
+                      {item.category} •{" "}
+                      {new Date(item.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))
             )}
           </div>
         )}
 
-        <div style={{ height: 80 }} />
+        {isUploading && (
+          <div className="upload-section modern-card">
+            <div className="card-accent"></div>
+            <div className="upload-content">
+              <div className="upload-icon-wrapper">
+                <span className="upload-emoji">📥</span>
+              </div>
+              <h2>Import Materials</h2>
+              <p>
+                Upload your notes, PDFs, or photos. Our AI will analyze them in
+                seconds.
+              </p>
+
+              <label className="custom-file-upload">
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileSelect}
+                  className="file-input-hidden"
+                />
+                <div className="upload-design">
+                  <span className="design-icon">
+                    {selectedFile ? "✅" : "📁"}
+                  </span>
+                  <span className="design-text">
+                    {selectedFile ? selectedFile.name : "Choose File"}
+                  </span>
+                </div>
+              </label>
+
+              {preview && (
+                <div className="image-preview-premium">
+                  <img src={preview} alt="Uploaded Notes" />
+                  <button
+                    className="remove-preview"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      setPreview(null);
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              {selectedFile && !preview && (
+                <div className="file-chip">
+                  <span>📄 {selectedFile.name}</span>
+                  <button
+                    className="remove-file"
+                    onClick={() => setSelectedFile(null)}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              <button
+                className={`generate-btn ${
+                  selectedFile && !loading ? "active" : ""
+                }`}
+                disabled={!selectedFile || loading}
+                onClick={generateSummary}
+              >
+                {loading ? (
+                  <div className="loader-wrapper">
+                    <div className="mini-loader"></div>
+                    <span>ANALYZING...</span>
+                  </div>
+                ) : (
+                  <>
+                    <span>GENERATE SUMMARY</span>
+                    <span className="sparkle-icon">✨</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                className="cancel-btn"
+                onClick={() => setIsUploading(false)}
+                style={{
+                  marginTop: 16,
+                  background: "none",
+                  border: "none",
+                  textDecoration: "underline",
+                  fontWeight: 700,
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {summaryData && !isUploading && (
+          <>
+            <div className="summary-actions">
+              <button
+                className="action-btn"
+                onClick={() =>
+                  navigate("/practice", { state: { type: "flashcards" } })
+                }
+              >
+                🎴 Flashcards
+              </button>
+              <button
+                className="action-btn"
+                onClick={() =>
+                  navigate("/practice", { state: { type: "mindmap" } })
+                }
+              >
+                🧠 Mindmaps
+              </button>
+              <button
+                className="action-btn"
+                onClick={() =>
+                  navigate("/practice", { state: { type: "quiz" } })
+                }
+              >
+                📝 Practice Quiz
+              </button>
+            </div>
+
+            <div className="summary-results">
+              <div className="summary-section highlight">
+                <h2>Overview</h2>
+                <p>{summaryData.overview}</p>
+              </div>
+
+              {summaryData.takeaway && (
+                <div className="takeaway-box">
+                  <strong>Quick Takeaway:</strong> {summaryData.takeaway}
+                </div>
+              )}
+
+              {summaryData.keyPoints?.length > 0 && (
+                <div className="summary-section">
+                  <h2>Key Points</h2>
+                  <ul>
+                    {summaryData.keyPoints.map((point, i) => (
+                      <li key={i}>{point}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {summaryData.wowFact && (
+                <div className="wow-section">
+                  <div className="wow-badge">AHA! MOMENT</div>
+                  <p>{summaryData.wowFact}</p>
+                </div>
+              )}
+
+              {summaryData.example && (
+                <div
+                  className="summary-section"
+                  style={{ background: "#f0fff4" }}
+                >
+                  <h2>Practical Example</h2>
+                  <p>{summaryData.example}</p>
+                </div>
+              )}
+
+              {summaryData.reviewQuestions?.length > 0 && (
+                <div className="summary-section">
+                  <h2>Review Questions</h2>
+                  <ul>
+                    {summaryData.reviewQuestions.map((q, i) => (
+                      <li key={i}>{q}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <button
+                className="button-v1"
+                style={{
+                  width: "100%",
+                  marginTop: 20,
+                  background: "black",
+                  color: "white",
+                }}
+                onClick={() => {
+                  setSummaryData(null);
+                  navigate("/summaries");
+                }}
+              >
+                VIEW ALL SUMMARIES
+              </button>
+            </div>
+          </>
+        )}
+
+        {!isUploading && (
+          <div className="fab-button" onClick={() => setIsUploading(true)}>
+            +
+          </div>
+        )}
+
+        <div style={{ height: 120 }} />
         <BottomNav />
       </div>
     </MobileOnly>

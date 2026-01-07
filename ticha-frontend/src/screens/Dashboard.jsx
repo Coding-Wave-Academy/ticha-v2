@@ -259,7 +259,9 @@ export default function Dashboard() {
         <h4>Featured</h4>
         <div className="featured" onClick={() => setShowPaymentModal(true)}>
           <div className="featured-content">
-            <div className="featured-icon"><img style={{width: 50}} src={tichaIcon} alt="Ticha Mascot" /></div>
+            <div className="featured-icon">
+              <img style={{ width: 50 }} src={tichaIcon} alt="Ticha Mascot" />
+            </div>
             <div>
               <p className="featured-label">Upgrade your plan</p>
               <h4>
@@ -282,7 +284,7 @@ export default function Dashboard() {
                 <div
                   key={summary.id}
                   className="summary-card"
-                  onClick={() => navigate(`/summary/${summary.id}`)}
+                  onClick={() => navigate("/summaries")}
                 >
                   <p className="summary-category">{summary.category}</p>
                   <h5>{summary.title}</h5>

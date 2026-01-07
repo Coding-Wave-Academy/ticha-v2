@@ -1,7 +1,12 @@
 import express from "express";
 import { protect } from "../middleware/auth.middleware.js";
 import supabase from "../config/supabase.js";
-import { generateQuizQuestion } from "../services/quiz.service.js";
+import {
+  generateQuizQuestion,
+  generateFullQuiz,
+  gradeQuizResponse,
+  generateFinalFeedback,
+} from "../services/quiz.service.js";
 import { getWeakestKnowledgeUnits } from "../services/weaknessMapping.service.js";
 
 const router = express.Router();
@@ -86,6 +91,53 @@ router.get("/generate", protect, async (req, res) => {
       error: "Failed to generate practice question",
       details: err.message,
     });
+  }
+});
+
+// Full Digital Quiz Endpoints
+router.get("/quiz/:materialId/generate", protect, async (req, res) => {
+  try {
+    const { materialId } = req.params;
+
+    // Fetch the material
+    const { data: material, error } = await supabase
+      .from("learning_materials")
+      .select("*")
+      .eq("id", materialId)
+      .single();
+
+    if (error || !material) {
+      return res.status(404).json({ error: "Material not found" });
+    }
+
+    const quiz = await generateFullQuiz(material);
+    res.json(quiz);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to generate quiz", details: err.message });
+  }
+});
+
+router.post("/quiz/grade", protect, async (req, res) => {
+  try {
+    const { question, studentAnswer } = req.body;
+    const result = await gradeQuizResponse(question, studentAnswer);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Grading failed", details: err.message });
+  }
+});
+
+router.post("/quiz/feedback", protect, async (req, res) => {
+  try {
+    const { results } = req.body;
+    const feedback = await generateFinalFeedback(results);
+    res.json(feedback);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Feedback generation failed", details: err.message });
   }
 });
 
