@@ -28,10 +28,17 @@ export default function BottomNav() {
     <div className="bottom-nav">
       {navItems.map((item, i) => (
         <div
-        style={{marginTop: "10px"}}
+          style={{ marginTop: "10px" }}
           key={`${item.label}-${i}`}
           className={`nav-item ${item.isCenter ? "center" : ""} ${
-            location.pathname === item.path ? "" : ""
+            location.pathname.startsWith(item.path) ||
+            (item.path === "/dashboard" &&
+              (location.pathname.startsWith("/summar") ||
+                location.pathname.startsWith("/knowledge"))) ||
+            (item.path === "/explore" &&
+              location.pathname.startsWith("/practice"))
+              ? "active"
+              : ""
           }`}
           onClick={() => navigate(item.path)}
         >

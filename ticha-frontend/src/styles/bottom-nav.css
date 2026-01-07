@@ -62,14 +62,14 @@
 }
 
 .nav-item.active {
-  background: #FFD500;
-  border: 3px solid #000;
-  border-radius: 12px;
+  background: var(--yellow);
   box-shadow: 4px 4px 0 #000;
-  color: #000;
+  border: 2px solid #000;
+  transform: translateY(-4px);
 }
 
 .nav-item.active .nav-label {
   color: #000;
-  font-weight: 800;
+  font-weight: 900;
+  text-transform: uppercase;
 }

@@ -4,7 +4,7 @@
   flex-direction: column;
   height: 100vh;
   background: #f5f5f5;
-  font-family: "Arial", sans-serif;
+  font-family: var(--font-main);
 }
 
 /* Top Header - "Chat Screen" title */
@@ -421,7 +421,7 @@
   padding: 12px 16px;
   border: 2px solid #000;
   border-radius: 24px;
-  font-family: "Arial", sans-serif;
+  font-family: var(--font-main);
   font-size: 14px;
   background: #fff;
   transition: all 0.2s ease;

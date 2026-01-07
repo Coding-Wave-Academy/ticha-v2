@@ -304,3 +304,41 @@
     transform: translateY(0);
   }
 }
+
+.results-title {
+  font-family: var(--font-main);
+  font-weight: 900;
+  font-size: 28px;
+  margin: 0 0 12px 0;
+  color: var(--black);
+}
+
+.results-summary {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.feedback-section.no-border {
+  border: none;
+}
+
+.feedback-section span.strength-icon {
+  color: var(--green);
+  font-weight: 900;
+}
+
+.feedback-section .focus-label {
+  color: #ff5252;
+  text-transform: uppercase;
+}
+
+.feedback-section h4 {
+  font-family: var(--font-main);
+}
+
+.feedback-section ul {
+  font-family: var(--font-mono);
+}

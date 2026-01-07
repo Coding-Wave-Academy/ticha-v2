@@ -9,7 +9,67 @@ import {
 } from "../services/quiz.service.js";
 import { getWeakestKnowledgeUnits } from "../services/weaknessMapping.service.js";
 
+import multer from "multer";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdfModule = require("pdf-parse");
+const pdf = pdfModule.default || pdfModule;
+import { callVisionLLM } from "../services/aiProvider.service.js";
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const router = express.Router();
+
+router.post(
+  "/quiz/generate-from-file",
+  protect,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const userId = req.user.userId;
+      let content = "";
+      const fileName = req.file.originalname;
+
+      if (req.file.mimetype === "application/pdf") {
+        const dataBuffer = req.file.buffer;
+        const pdfData = await pdf(dataBuffer);
+        content = pdfData.text;
+      } else if (req.file.mimetype.startsWith("image/")) {
+        const base64Image = req.file.buffer.toString("base64");
+        content = await callVisionLLM({
+          systemPrompt:
+            "You are an expert OCR assistant. Extract ALL text from this question paper exactly as it appears. Include question numbers and options.",
+          userPrompt:
+            "Extract the text from this past question image so I can generate a quiz from it.",
+          imageBase64: base64Image,
+          preferredProvider: "grok",
+        });
+      }
+
+      if (!content) {
+        return res
+          .status(400)
+          .json({ error: "Could not extract text from file." });
+      }
+
+      // Now generate a quiz from this content
+      const quiz = await generateFullQuiz({
+        title: fileName,
+        raw_text: content,
+      });
+      res.json(quiz);
+    } catch (err) {
+      console.error("Quiz generation from file error:", err);
+      res
+        .status(500)
+        .json({
+          error: "Failed to process file and generate quiz",
+          details: err.message,
+        });
+    }
+  }
+);
 
 router.post("/answer", protect, async (req, res) => {
   const { selectedOption, question } = req.body;

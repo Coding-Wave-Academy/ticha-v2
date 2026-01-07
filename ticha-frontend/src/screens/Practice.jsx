@@ -11,9 +11,10 @@ export default function Practice() {
   const location = useLocation();
   const { showToast } = useToast();
 
-  const [view, setView] = useState("list"); // list, quiz, results
+  const [view, setView] = useState("upload"); // upload, quiz, results
   const [loading, setLoading] = useState(false);
-  const [materials, setMaterials] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [quizData, setQuizData] = useState(null);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answer, setAnswer] = useState("");
@@ -21,33 +22,36 @@ export default function Practice() {
   const [results, setResults] = useState([]);
   const [finalFeedback, setFinalFeedback] = useState(null);
 
-  // Fetch materials for the list view
-  const fetchMaterials = async () => {
-    setLoading(true);
-    try {
-      const data = await apiFetch("/api/materials");
-      setMaterials(data);
-    } catch (err) {
-      showToast("Failed to load materials", { type: "error" });
-    } finally {
-      setLoading(false);
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      if (file.type.startsWith("image/")) {
+        setPreview(URL.createObjectURL(file));
+      } else {
+        setPreview(null);
+      }
     }
   };
 
-  useEffect(() => {
-    fetchMaterials();
-  }, []);
-
-  const startQuiz = async (materialId) => {
+  const startQuiz = async () => {
+    if (!selectedFile) return;
     setLoading(true);
     try {
-      const data = await apiFetch(`/api/practice/quiz/${materialId}/generate`);
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const data = await apiFetch("/api/practice/quiz/generate-from-file", {
+        method: "POST",
+        body: formData,
+      });
+
       setQuizData(data);
       setCurrentIdx(0);
       setResults([]);
       setView("quiz");
     } catch (err) {
-      showToast("Failed to generate quiz", { type: "error" });
+      showToast("Failed to generate quiz from file", { type: "error" });
     } finally {
       setLoading(false);
     }
@@ -60,7 +64,6 @@ export default function Practice() {
     const question = quizData.questions[currentIdx];
 
     try {
-      // For MCQ, answer is already set via option click
       const res = await apiFetch("/api/practice/quiz/grade", {
         method: "POST",
         body: JSON.stringify({
@@ -79,7 +82,6 @@ export default function Practice() {
       if (currentIdx < quizData.questions.length - 1) {
         setCurrentIdx(currentIdx + 1);
       } else {
-        // Quiz finished
         generateFeedback(updatedResults);
       }
     } catch (err) {
@@ -100,40 +102,93 @@ export default function Practice() {
       setView("results");
     } catch (err) {
       showToast("Failed to generate feedback", { type: "error" });
-      setView("list");
+      setView("upload");
     } finally {
       setLoading(false);
     }
   };
 
-  const renderList = () => (
-    <div className="practice-list">
-      {materials.length === 0 ? (
-        <div className="practice-card" style={{ textAlign: "center" }}>
-          <span style={{ fontSize: 40 }}>📚</span>
-          <p>
-            No study materials yet. Upload some notes in the "Summaries" tab
-            first!
-          </p>
-          <button className="button-v1" onClick={() => navigate("/summaries")}>
-            GO TO SUMMARIES
-          </button>
+  const renderUpload = () => (
+    <div
+      className="upload-section modern-card"
+      style={{ width: "100%", maxWidth: 500 }}
+    >
+      <div className="card-accent"></div>
+      <div className="upload-content">
+        <div className="upload-icon-wrapper">
+          <span className="upload-emoji">📄</span>
         </div>
-      ) : (
-        materials.map((m) => (
-          <div
-            key={m.id}
-            className="history-card"
-            onClick={() => startQuiz(m.id)}
-          >
-            <div className="icon">📝</div>
-            <div className="info">
-              <h4>{m.title}</h4>
-              <p>{m.subject} • Click to start quiz</p>
-            </div>
+        <h2 style={{ fontFamily: "var(--font-main)" }}>PAST QUESTIONS</h2>
+        <p style={{ fontFamily: "var(--font-mono)" }}>
+          Upload a photo or PDF of a past question paper. Our AI will turn it
+          into an interactive quiz!
+        </p>
+
+        <label className="custom-file-upload">
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            onChange={handleFileSelect}
+            className="file-input-hidden"
+          />
+          <div className="upload-design">
+            <span className="design-icon">{selectedFile ? "✅" : "📁"}</span>
+            <span className="design-text">
+              {selectedFile ? selectedFile.name : "Choose File"}
+            </span>
           </div>
-        ))
-      )}
+        </label>
+
+        {preview && (
+          <div className="image-preview-premium">
+            <img
+              src={preview}
+              alt="Uploaded"
+              style={{ width: "100%", borderRadius: 10 }}
+            />
+            <button
+              className="remove-preview"
+              onClick={() => {
+                setSelectedFile(null);
+                setPreview(null);
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {selectedFile && !preview && (
+          <div className="file-chip">
+            <span>📄 {selectedFile.name}</span>
+            <button
+              className="remove-file"
+              onClick={() => setSelectedFile(null)}
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        <button
+          className={`generate-btn ${selectedFile && !loading ? "active" : ""}`}
+          style={{ width: "100%" }}
+          disabled={!selectedFile || loading}
+          onClick={startQuiz}
+        >
+          {loading ? (
+            <div className="loader-wrapper">
+              <div className="mini-loader"></div>
+              <span>READING PAPER...</span>
+            </div>
+          ) : (
+            <>
+              <span>START LEARNING QUEST</span>
+              <span className="sparkle-icon">✨</span>
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 
@@ -172,6 +227,7 @@ export default function Practice() {
             <textarea
               className="input-field"
               placeholder="Type your answer here..."
+              style={{ fontFamily: "var(--font-mono)" }}
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               rows={4}
@@ -186,9 +242,9 @@ export default function Practice() {
               onClick={handleNext}
             >
               {grading
-                ? "GRADING..."
+                ? "EVALUATING..."
                 : currentIdx === quizData.questions.length - 1
-                ? "FINISH QUIZ"
+                ? "FINISH QUEST"
                 : "NEXT QUESTION →"}
             </button>
           </div>
@@ -203,16 +259,12 @@ export default function Practice() {
         <div className="mastery-badge">
           {finalFeedback?.masteryLevel || "Learner"}
         </div>
-        <h2 style={{ fontWeight: 900, fontSize: 28, margin: "0 0 12px 0" }}>
-          Great Job! 🎉
-        </h2>
-        <p style={{ color: "#666", lineHeight: 1.5, marginBottom: 20 }}>
-          {finalFeedback?.summary}
-        </p>
+        <h2 className="results-title">Great Job! 🎉</h2>
+        <p className="results-summary">{finalFeedback?.summary}</p>
 
         <div className="feedback-section">
           <h4>
-            <span style={{ color: "var(--green)" }}>✓</span> Strengths
+            <span>✓</span> Strengths
           </h4>
           <ul>
             {finalFeedback?.strengths?.map((s, i) => (
@@ -221,9 +273,9 @@ export default function Practice() {
           </ul>
         </div>
 
-        <div className="feedback-section" style={{ border: "none" }}>
+        <div className="feedback-section no-border">
           <h4>
-            <span style={{ color: "#ff5252" }}>Focus</span> Areas
+            <span className="focus-label">Focus</span> Areas
           </h4>
           <ul>
             {finalFeedback?.weaknesses?.map((w, i) => (
@@ -236,8 +288,9 @@ export default function Practice() {
           className="button-v1"
           style={{ width: "100%", marginTop: 32, background: "var(--yellow)" }}
           onClick={() => {
-            setView("list");
-            fetchMaterials();
+            setView("upload");
+            setSelectedFile(null);
+            setPreview(null);
           }}
         >
           DONE
@@ -253,7 +306,7 @@ export default function Practice() {
           <button
             className="back-btn"
             onClick={() =>
-              view === "list" ? navigate("/dashboard") : setView("list")
+              view === "upload" ? navigate("/dashboard") : setView("upload")
             }
           >
             ←
@@ -283,7 +336,7 @@ export default function Practice() {
           </div>
         ) : (
           <>
-            {view === "list" && renderList()}
+            {view === "upload" && renderUpload()}
             {view === "quiz" && renderQuiz()}
             {view === "results" && renderResults()}
           </>
