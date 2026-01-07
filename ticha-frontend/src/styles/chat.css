@@ -266,27 +266,33 @@
   font-weight: 900;
   display: inline-block;
   width: 1em;
-  margin-left: -1em;
+  content: "⚡";
+  font-size: 10px;
+  margin-right: 8px;
 }
 
 .message-content code {
-  background: #eee;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-family: "Courier New", Courier, monospace;
-  font-weight: 600;
-  border: 1px solid #ccc;
+  background: black;
+  color: var(--green);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  border: none;
 }
 
 .message.assistant .message-content {
   background: #fff;
   border-color: #000;
   border-radius: 18px 18px 18px 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  box-shadow: 6px 6px 0 var(--yellow);
 }
 
 .message.assistant .message-content strong {
-  color: #ff5722; /* Vibrant orange for key terms in AI response */
-  font-weight: 800;
+  background: var(--yellow);
+  color: black;
 }
 
 .message.user .message-bubble {
@@ -294,15 +300,17 @@
 }
 
 .message.user .message-content {
-  background: #ff8c42;
+  background: var(--purple);
   border-color: #000;
-  color: #000;
+  color: #fff;
   border-radius: 18px 18px 4px 18px;
+  font-weight: 600;
 }
 
 .message.user .message-content strong {
-  color: #fff; /* White bold text on orange background */
-  font-weight: 800;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid white;
 }
 
 /* Action Buttons */

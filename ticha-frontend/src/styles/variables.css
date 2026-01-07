@@ -1,8 +1,13 @@
 :root {
-  --yellow: #FFD400;
-  --green: #BCFF00;
-  --cream: #FFF8E6;
+  --yellow: #ffd400;
+  --green: #bcff00;
+  --cream: #fff8e6;
   --black: #000;
+  --red: #ff5252;
+  --purple: #6c5ce7;
+  --blue: #74b9ff;
+  --font-main: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 * {
@@ -11,6 +16,7 @@
 
 body {
   margin: 0;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: var(--font-main);
   background: var(--cream);
+  color: var(--black);
 }

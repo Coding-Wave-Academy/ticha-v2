@@ -31,7 +31,7 @@ const getOpenRouter = () =>
   createClient("https://openrouter.ai/api/v1", process.env.OPENROUTER_API_KEY);
 
 const SYSTEM_INSTRUCTION_SUFFIX =
-  "\nIMPORTANT: Your response MUST be highly visual and clear. \n1. Use **Bold** for all key concepts, definitions, and important terms.\n2. Use ### Headers for different sections of your explanation.\n3. Use Bullet points or Numbered lists for sequences or features.\n4. Use `code blocks` for formulas or specific terminology.\n5. Keep paragraphs short and use spacing to make the text 'pop'.\n6. Avoid large walls of plain text.\nREASONING: Before providing the final answer, think step-by-step and show your reasoning process clearly.";
+  "\nIMPORTANT: Let's make this response POP! 💥 \n1. **BOLD** everything important: key terms, concepts, and big ideas.\n2. Use ### HEADERS to break your info into bite-sized chunks.\n3. Use Bullet points (use emojis naturally, e.g., 🚀, 💡, ✅) for lists.\n4. Use `code blocks` for formulas, definitions, or tech terms.\n5. Keep it snappy! Short paragraphs and lots of white space.\n6. No big walls of text—only clean, catchy, and fun vibes.\nREASONING: Briefly show your 'Think-Through' process so I can see your genius level logic!";
 
 /**
  * Safely parse JSON from LLM response, handling markdown blocks and extra text.
