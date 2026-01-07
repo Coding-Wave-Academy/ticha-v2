@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { OpenRouter } from "@openrouter/sdk";
 
 // Lazy initialization of AI clients to ensure process.env is populated
 let geminiGenAI;
@@ -28,15 +27,8 @@ const getDeepseek = () =>
 const getGrok = () =>
   createClient("https://api.x.ai/v1", process.env.GROK_API_KEY);
 
-let orClient;
-const getOpenRouter = () => {
-  if (!orClient) {
-    orClient = new OpenRouter({
-      apiKey: process.env.OPENROUTER_API_KEY || "dummy",
-    });
-  }
-  return orClient;
-};
+const getOpenRouter = () =>
+  createClient("https://openrouter.ai/api/v1", process.env.OPENROUTER_API_KEY);
 
 const SYSTEM_INSTRUCTION_SUFFIX =
   "\nIMPORTANT: Your response MUST be highly visual and clear. \n1. Use **Bold** for all key concepts, definitions, and important terms.\n2. Use ### Headers for different sections of your explanation.\n3. Use Bullet points or Numbered lists for sequences or features.\n4. Use `code blocks` for formulas or specific terminology.\n5. Keep paragraphs short and use spacing to make the text 'pop'.\n6. Avoid large walls of plain text.\nREASONING: Before providing the final answer, think step-by-step and show your reasoning process clearly.";
@@ -45,43 +37,27 @@ const SYSTEM_INSTRUCTION_SUFFIX =
 const providers = [
   {
     name: "openrouter",
-    run: async (system, user) => {
-      const response = await getOpenRouter().chat.send({
-        model: "xiaomi/mimo-v2-flash:free",
-        messages: [
-          { role: "system", content: system + SYSTEM_INSTRUCTION_SUFFIX },
-          { role: "user", content: user },
-        ],
-        temperature: 0.3,
-      });
-      return response.choices[0].message.content;
-    },
-    runVision: async (system, user, base64) => {
-      const response = await getOpenRouter().chat.send({
-        model: "google/gemma-3-27b-it:free",
-        messages: [
-          { role: "system", content: system + SYSTEM_INSTRUCTION_SUFFIX },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: user },
-              {
-                type: "image_url",
-                image_url: { url: `data:image/jpeg;base64,${base64}` },
-              },
-            ],
-          },
-        ],
-        temperature: 0.3,
-      });
-      return response.choices[0].message.content;
-    },
+    run: async (system, user) =>
+      callOpenAICompatible(
+        getOpenRouter(),
+        "google/gemini-2.0-flash-exp:free",
+        system,
+        user
+      ),
+    runVision: async (system, user, base64) =>
+      callOpenAIVision(
+        getOpenRouter(),
+        "google/gemini-2.0-flash-exp:free",
+        system,
+        user,
+        base64
+      ),
   },
   {
     name: "gemini",
     run: async (system, user) => {
       const model = getGemini().getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-1.5-flash",
       });
       const prompt = `${system} ${SYSTEM_INSTRUCTION_SUFFIX}\n\nUser Question: ${user}`;
       const result = await model.generateContent(prompt);
@@ -89,7 +65,7 @@ const providers = [
     },
     runVision: async (system, user, base64) => {
       const model = getGemini().getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-1.5-flash",
       });
       const prompt = `${system} ${SYSTEM_INSTRUCTION_SUFFIX}\n\n${user}`;
       const imagePart = {
@@ -118,9 +94,9 @@ const providers = [
   {
     name: "grok",
     run: async (system, user) =>
-      callOpenAICompatible(getGrok(), "grok-2-latest", system, user),
+      callOpenAICompatible(getGrok(), "grok-2-1212", system, user),
     runVision: async (system, user, base64) =>
-      callOpenAIVision(getGrok(), "grok-2-vision-latest", system, user, base64),
+      callOpenAIVision(getGrok(), "grok-2-vision-1212", system, user, base64),
   },
 ];
 
@@ -164,12 +140,19 @@ export const callLLM = async ({
 }) => {
   const errors = [];
 
-  // Sort providers if a preference is provided
+  // Sort providers: preferred first, then OpenRouter (as it has free models)
   const sortedProviders = [...providers];
   if (preferredProvider) {
     const idx = sortedProviders.findIndex((p) => p.name === preferredProvider);
     if (idx > -1) {
       const p = sortedProviders.splice(idx, 1)[0];
+      sortedProviders.unshift(p);
+    }
+  } else {
+    // Default priority: openrouter (free models) first to handle blocked keys
+    const orIdx = sortedProviders.findIndex((p) => p.name === "openrouter");
+    if (orIdx > -1) {
+      const p = sortedProviders.splice(orIdx, 1)[0];
       sortedProviders.unshift(p);
     }
   }
@@ -205,12 +188,18 @@ export const callVisionLLM = async ({
 }) => {
   const errors = [];
 
-  // Sort providers if a preference is provided
   const sortedProviders = [...providers];
   if (preferredProvider) {
     const idx = sortedProviders.findIndex((p) => p.name === preferredProvider);
     if (idx > -1) {
       const p = sortedProviders.splice(idx, 1)[0];
+      sortedProviders.unshift(p);
+    }
+  } else {
+    // Default priority: openrouter first
+    const orIdx = sortedProviders.findIndex((p) => p.name === "openrouter");
+    if (orIdx > -1) {
+      const p = sortedProviders.splice(orIdx, 1)[0];
       sortedProviders.unshift(p);
     }
   }

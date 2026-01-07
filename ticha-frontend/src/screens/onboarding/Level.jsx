@@ -124,7 +124,7 @@ export default function Level() {
         }}
         disabled={!onboarding.level}
         onClick={() =>
-          navigate(onboarding.level === "uni" ? "/upload-courses" : "/subjects")
+          navigate(onboarding.level === "uni" ? "/auth" : "/subjects")
         }
       >
         {language === "fr" ? "CONTINUER" : "CONTINUE"}

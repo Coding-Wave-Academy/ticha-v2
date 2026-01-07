@@ -53,20 +53,22 @@ export const generateTutorResponse = async (
     }
 
     // 2. Build SYSTEM PROMPT (non-negotiable rules)
-    const systemPrompt = `
+const systemPrompt = `
 ${TICHA_SYSTEM_PROMPT}
 
 STUDENT CONTEXT:
+- Name: ${context.name}
 - Level: ${context.level}
 - Weak topics: ${context.weakestTopics.join(", ")}
 - Recent mistakes: ${context.recentMistakes.join(", ")}
 - Language: ${context.language}
 
 STRICT TEACHING RULES:
-1. THINK STRAIGHT-FORWARD: Analyze logic efficiently.
-2. BE CONCISE: Use minimal words for maximum impact.
-3. Don't just give answers; guide with a single, sharp question if the student is stuck.
-4. Correct thinking with logic, not just definitions.
+1. ADDRESS THE STUDENT BY NAME: Frequently use the student's name (${context.name}) to build rapport.
+2. THINK STRAIGHT-FORWARD: Analyze logic efficiently.
+3. BE CONCISE: Use minimal words for maximum impact.
+4. Don't just give answers; guide with a single, sharp question if the student is stuck.
+5. Correct thinking with logic, not just definitions.
 `;
 
     // 3. Build conversation context

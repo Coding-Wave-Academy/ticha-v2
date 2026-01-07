@@ -30,14 +30,6 @@ export default function Subjects() {
 
   const currentLimit = limits[selectedLevel] || { min: 3, max: 8 };
 
-  useEffect(() => {
-    if (selectedLevel === "University") {
-      navigate("/dashboard");
-    }
-  }, [selectedLevel, navigate]);
-
-  if (selectedLevel === "University") return null;
-
   const subjects = subjectsByLevel[selectedLevel] || [];
 
   const toggle = (subject) => {
@@ -91,28 +83,25 @@ export default function Subjects() {
       <ProgressDots step={4} />
 
       <div className="header">
-     
- <h1 className="title">
-        {language === "fr" ? "SÉLECTIONNE TES SUJETS" : "SELECT YOUR SUBJECTS"}
-      </h1>
-      
-<p
-        style={{
-          fontSize: 14,
-          marginBottom: 32,
-          marginTop: 0,
-          textAlign: "center",
-        }}
-      >
-        {language === "fr"
-          ? `Choisis ${currentLimit.min} à ${currentLimit.max} sujets (${selected.length}/${currentLimit.max} sélectionnés)`
-          : `Choose ${currentLimit.min} to ${currentLimit.max} subjects (${selected.length}/${currentLimit.max} selected)`}
-      </p>
- 
-      </div>
+        <h1 className="title">
+          {language === "fr"
+            ? "SÉLECTIONNE TES SUJETS"
+            : "SELECT YOUR SUBJECTS"}
+        </h1>
 
-     
-      
+        <p
+          style={{
+            fontSize: 14,
+            marginBottom: 32,
+            marginTop: 0,
+            textAlign: "center",
+          }}
+        >
+          {language === "fr"
+            ? `Choisis ${currentLimit.min} à ${currentLimit.max} sujets (${selected.length}/${currentLimit.max} sélectionnés)`
+            : `Choose ${currentLimit.min} to ${currentLimit.max} subjects (${selected.length}/${currentLimit.max} selected)`}
+        </p>
+      </div>
 
       <div className="subjects-bubbles">
         {subjects.map((subj) => (

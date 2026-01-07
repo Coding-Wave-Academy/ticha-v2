@@ -1,6 +1,9 @@
+import supabase from "../config/supabase.js";
+
 export const buildAIContext = (user, profile) => {
   return {
     identity: {
+      name: user.full_name,
       role: profile.system,
       level: profile.current_level,
       subjects: profile.subjects,
@@ -21,13 +24,40 @@ export const buildAIContext = (user, profile) => {
 };
 
 export const buildTutorContext = async (userId) => {
-  return {
-    userId, // Add userId for conversation tracking
-    level: "GCE A/L",
-    subjects: ["Mathematics", "Physics"],
-    weakestTopics: ["Electric Fields", "Differentiation"],
-    recentMistakes: ["confusing potential and voltage"],
-    tone: "compassionate_teacher",
-    language: "EN",
-  };
+  try {
+    const { data: user } = await supabase
+      .from("students")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    const { data: profile } = await supabase
+      .from("student_profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    return {
+      userId,
+      name: user?.full_name || "Student",
+      level: user?.role || "GCE A/L",
+      subjects: profile?.subjects || [],
+      weakestTopics: profile?.weaknesses || [],
+      recentMistakes: [],
+      tone: profile?.motivation_style || "compassionate_teacher",
+      language: user?.language || "EN",
+    };
+  } catch (error) {
+    console.error("Error building tutor context:", error);
+    return {
+      userId,
+      name: "Student",
+      level: "GCE A/L",
+      subjects: [],
+      weakestTopics: [],
+      recentMistakes: [],
+      tone: "compassionate_teacher",
+      language: "EN",
+    };
+  }
 };
