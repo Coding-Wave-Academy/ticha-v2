@@ -101,38 +101,31 @@ Return as JSON array with keys: title, description, estimated_minutes, task_type
 
     const response = await callLLM({
       systemPrompt:
-        "You are an expert educational task designer. Create engaging, achievable learning tasks.",
+        "You are an expert educational task designer. Create engaging, achievable learning tasks. (IMPORTANT: Return ONLY valid JSON)",
       userPrompt: prompt,
     });
 
     // Parse AI response
-    let tasksData;
-    try {
-      // Extract JSON from response (might be wrapped in markdown or text)
-      const jsonMatch = response.match(/\[[\s\S]*\]/);
-      tasksData = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(response);
-    } catch {
-      tasksData = [
-        {
-          title: "Review Weaknesses",
-          description: "Focus on your weaker concepts",
-          estimated_minutes: 20,
-          task_type: "review",
-        },
-        {
-          title: "Practice Quiz",
-          description: "Test your knowledge",
-          estimated_minutes: 25,
-          task_type: "quiz",
-        },
-        {
-          title: "Study Summary",
-          description: "Review today's lessons",
-          estimated_minutes: 15,
-          task_type: "review",
-        },
-      ];
-    }
+    const tasksData = safeJSONParse(response) || [
+      {
+        title: "Review Weaknesses",
+        description: "Focus on your weaker concepts",
+        estimated_minutes: 20,
+        task_type: "review",
+      },
+      {
+        title: "Practice Quiz",
+        description: "Test your knowledge",
+        estimated_minutes: 25,
+        task_type: "quiz",
+      },
+      {
+        title: "Study Summary",
+        description: "Review today's lessons",
+        estimated_minutes: 15,
+        task_type: "review",
+      },
+    ];
 
     // Store tasks in database
     const taskRecords = tasksData.slice(0, 3).map((task, idx) => ({

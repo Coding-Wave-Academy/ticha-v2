@@ -33,6 +33,47 @@ const getOpenRouter = () =>
 const SYSTEM_INSTRUCTION_SUFFIX =
   "\nIMPORTANT: Your response MUST be highly visual and clear. \n1. Use **Bold** for all key concepts, definitions, and important terms.\n2. Use ### Headers for different sections of your explanation.\n3. Use Bullet points or Numbered lists for sequences or features.\n4. Use `code blocks` for formulas or specific terminology.\n5. Keep paragraphs short and use spacing to make the text 'pop'.\n6. Avoid large walls of plain text.\nREASONING: Before providing the final answer, think step-by-step and show your reasoning process clearly.";
 
+/**
+ * Safely parse JSON from LLM response, handling markdown blocks and extra text.
+ */
+export const safeJSONParse = (text) => {
+  if (!text) return null;
+  try {
+    // 1. Try to extract JSON from markdown code blocks
+    const jsonMatch =
+      text.match(/```json\n([\s\S]*?)\n```/) ||
+      text.match(/```\n([\s\S]*?)\n```/);
+
+    const jsonString = jsonMatch ? jsonMatch[1].trim() : text.trim();
+
+    // 2. Try to find the first '{' or '[' and last '}' or ']'
+    const firstBrace = jsonString.indexOf("{");
+    const firstBracket = jsonString.indexOf("[");
+    let start = -1;
+    let end = -1;
+
+    if (
+      firstBrace !== -1 &&
+      (firstBracket === -1 || firstBrace < firstBracket)
+    ) {
+      start = firstBrace;
+      end = jsonString.lastIndexOf("}");
+    } else if (firstBracket !== -1) {
+      start = firstBracket;
+      end = jsonString.lastIndexOf("]");
+    }
+
+    if (start !== -1 && end !== -1 && end > start) {
+      return JSON.parse(jsonString.substring(start, end + 1));
+    }
+
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error("Failed to parse JSON from LLM response:", e.message);
+    return null;
+  }
+};
+
 // Provider Configurations
 const providers = [
   {
@@ -59,7 +100,9 @@ const providers = [
       const model = getGemini().getGenerativeModel({
         model: "gemini-1.5-flash",
       });
-      const prompt = `${system} ${SYSTEM_INSTRUCTION_SUFFIX}\n\nUser Question: ${user}`;
+      const isJSON = system.includes("JSON") || user.includes("JSON");
+      const suffix = isJSON ? "" : SYSTEM_INSTRUCTION_SUFFIX;
+      const prompt = `${system} ${suffix}\n\nUser Question: ${user}`;
       const result = await model.generateContent(prompt);
       return result.response.text();
     },
@@ -101,10 +144,12 @@ const providers = [
 ];
 
 async function callOpenAICompatible(client, model, system, user) {
+  const isJSON = system.includes("JSON") || user.includes("JSON");
+  const suffix = isJSON ? "" : SYSTEM_INSTRUCTION_SUFFIX;
   const response = await client.chat.completions.create({
     model: model,
     messages: [
-      { role: "system", content: system + SYSTEM_INSTRUCTION_SUFFIX },
+      { role: "system", content: system + suffix },
       { role: "user", content: user },
     ],
     temperature: 0.3,

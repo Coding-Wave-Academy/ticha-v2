@@ -1,24 +1,6 @@
 import supabase from "../config/supabase.js";
-import { callLLM } from "./aiProvider.service.js";
+import { callLLM, safeJSONParse } from "./aiProvider.service.js";
 import { TICHA_SYSTEM_PROMPT } from "../prompts/ticha.system.prompt.js";
-
-// Helper to safely parse JSON responses
-const safeJSONParse = (text) => {
-  try {
-    // Try to extract JSON from markdown code blocks
-    const jsonMatch =
-      text.match(/```json\n([\s\S]*?)\n```/) ||
-      text.match(/```\n([\s\S]*?)\n```/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[1]);
-    }
-    // Try direct parse
-    return JSON.parse(text);
-  } catch (e) {
-    // If parsing fails, return null
-    return null;
-  }
-};
 
 export const generateTutorResponse = async (
   message,
@@ -53,7 +35,7 @@ export const generateTutorResponse = async (
     }
 
     // 2. Build SYSTEM PROMPT (non-negotiable rules)
-const systemPrompt = `
+    const systemPrompt = `
 ${TICHA_SYSTEM_PROMPT}
 
 STUDENT CONTEXT:
@@ -64,7 +46,9 @@ STUDENT CONTEXT:
 - Language: ${context.language}
 
 STRICT TEACHING RULES:
-1. ADDRESS THE STUDENT BY NAME: Frequently use the student's name (${context.name}) to build rapport.
+1. ADDRESS THE STUDENT BY NAME: Frequently use the student's name (${
+      context.name
+    }) to build rapport.
 2. THINK STRAIGHT-FORWARD: Analyze logic efficiently.
 3. BE CONCISE: Use minimal words for maximum impact.
 4. Don't just give answers; guide with a single, sharp question if the student is stuck.

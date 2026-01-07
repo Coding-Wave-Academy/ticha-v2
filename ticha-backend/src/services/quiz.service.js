@@ -1,4 +1,4 @@
-import { callLLM } from "./aiProvider.service.js";
+import { callLLM, safeJSONParse } from "./aiProvider.service.js";
 import { SYSTEM_PROMPT } from "../prompts/system.prompt.js";
 
 export const generateQuizQuestion = async (knowledgeUnit) => {
@@ -9,7 +9,7 @@ Concept:
 ${knowledgeUnit.concept_title}
 
 Explanation:
-${knowledgeUnit.explanation}
+${knowledgeUnit.explanation || knowledgeUnit.summary}
 
 Rules:
 - One correct answer
@@ -33,9 +33,13 @@ Note: The keys in explanation_wrong must EXACTLY match the text in the options a
 `;
 
   const response = await callLLM({
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: SYSTEM_PROMPT + " (IMPORTANT: Return ONLY valid JSON)",
     userPrompt,
   });
 
-  return JSON.parse(response);
+  const parsed = safeJSONParse(response);
+  if (!parsed) {
+    throw new Error("Failed to parse quiz question from AI response");
+  }
+  return parsed;
 };

@@ -1,4 +1,4 @@
-import { callLLM } from "./aiProvider.service.js";
+import { callLLM, safeJSONParse } from "./aiProvider.service.js";
 import { SYSTEM_PROMPT } from "../prompts/system.prompt.js";
 
 export const extractKnowledgeUnits = async (material) => {
@@ -21,10 +21,14 @@ ${material.raw_text}
 `;
 
   const response = await callLLM({
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: SYSTEM_PROMPT + " (IMPORTANT: Return ONLY valid JSON)",
     userPrompt,
     preferredProvider: "grok",
   });
 
-  return JSON.parse(response);
+  const parsed = safeJSONParse(response);
+  if (!parsed) {
+    throw new Error("Failed to parse knowledge units from AI response");
+  }
+  return parsed;
 };

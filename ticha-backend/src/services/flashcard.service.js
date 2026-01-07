@@ -1,4 +1,4 @@
-import { callLLM } from "./aiProvider.service.js";
+import { callLLM, safeJSONParse } from "./aiProvider.service.js";
 import { SYSTEM_PROMPT } from "../prompts/system.prompt.js";
 import supabase from "../config/supabase.js";
 
@@ -10,7 +10,7 @@ Concept:
 ${knowledgeUnit.concept_title}
 
 Explanation:
-${knowledgeUnit.explanation}
+${knowledgeUnit.explanation || knowledgeUnit.summary}
 
 Rules:
 - Focus on understanding
@@ -24,23 +24,25 @@ Format:
 `;
 
   const response = await callLLM({
-    systemPrompt: SYSTEM_PROMPT,
-    userPrompt
+    systemPrompt: SYSTEM_PROMPT + " (IMPORTANT: Return ONLY valid JSON)",
+    userPrompt,
   });
 
-  return JSON.parse(response);
+  const parsed = safeJSONParse(response);
+  if (!parsed) {
+    throw new Error("Failed to parse flashcards from AI response");
+  }
+  return parsed;
 };
 
 export const saveFlashcards = async (knowledgeUnitId, cards) => {
-  const formatted = cards.map(c => ({
+  const formatted = cards.map((c) => ({
     knowledge_unit_id: knowledgeUnitId,
     question: c.question,
-    answer: c.answer
+    answer: c.answer,
   }));
 
-  const { error } = await supabase
-    .from("flashcards")
-    .insert(formatted);
+  const { error } = await supabase.from("flashcards").insert(formatted);
 
   if (error) throw error;
 };

@@ -82,7 +82,10 @@ router.get("/generate", protect, async (req, res) => {
     res.json({ ...question, unit_id: unit.id });
   } catch (err) {
     console.error("Practice generation error:", err);
-    res.status(500).json({ error: "Failed to generate practice question" });
+    res.status(500).json({
+      error: "Failed to generate practice question",
+      details: err.message,
+    });
   }
 });
 
