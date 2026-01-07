@@ -6,7 +6,6 @@ import { apiFetch } from "../utils/api";
 export default function DailyTaskModal({ open, onClose }) {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
   const [taskLoading, setTaskLoading] = useState({});
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -38,24 +37,6 @@ export default function DailyTaskModal({ open, onClose }) {
 
     fetchTasks();
   }, [open]);
-
-  const generateAITasks = async () => {
-    setAiLoading(true);
-    setError(null);
-    try {
-      const data = await apiFetch("/api/daily/generate-ai", {
-        method: "POST",
-      });
-
-      setTasks(data.tasks || data);
-      showToast("AI tasks generated!", { type: "success" });
-    } catch (err) {
-      setError(err.message || "Error");
-      showToast(err.message || "Error generating tasks", { type: "error" });
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   if (!open) return null;
 
@@ -107,7 +88,33 @@ export default function DailyTaskModal({ open, onClose }) {
           {loading && <p>Loading…</p>}
           {error && <p style={{ color: "red" }}>{error}</p>}
 
-          {!loading && !tasks.length && <p>No tasks for today.</p>}
+          {!loading && !tasks.length && (
+            <div
+              className="empty-tasks-state"
+              style={{ textAlign: "center", padding: "20px 0" }}
+            >
+              <span style={{ fontSize: 40 }}>🏜️</span>
+              <p style={{ fontWeight: 800 }}>No personalized tasks yet!</p>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.4 }}>
+                Upload your notes or take a quiz so TCICHA can build your
+                specific study plan.
+              </p>
+              <button
+                className="button-v1"
+                style={{
+                  background: "var(--yellow)",
+                  marginTop: 16,
+                  width: "100%",
+                }}
+                onClick={() => {
+                  navigate("/summaries");
+                  onClose();
+                }}
+              >
+                UPLOAD MATERIALS
+              </button>
+            </div>
+          )}
 
           <ul className="task-list">
             {tasks.map((t) => (
@@ -193,16 +200,8 @@ export default function DailyTaskModal({ open, onClose }) {
           </ul>
 
           <div className="modal-actions">
-            <button
-              className="btn primary"
-              onClick={generateAITasks}
-              disabled={aiLoading}
-              style={{ marginBottom: 8 }}
-            >
-              {aiLoading ? "🤖 Generating…" : "🤖 Generate AI Tasks"}
-            </button>
             <button className="btn primary" onClick={onClose}>
-              Start Day
+              {tasks.length > 0 ? "Start Day" : "Got it"}
             </button>
             <button className="btn ghost" onClick={onClose}>
               Later

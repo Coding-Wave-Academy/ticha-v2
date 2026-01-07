@@ -1,11 +1,123 @@
-import { generateDailyPlan } from "../services/dailyPlanner.service.js";
 import supabase from "../config/supabase.js";
-import { callLLM } from "../services/aiProvider.service.js";
+import { callLLM, safeJSONParse } from "../services/aiProvider.service.js";
 import { getWeakestKnowledgeUnits } from "../services/weaknessMapping.service.js";
 
 export const getTodayTasks = async (req, res) => {
-  const tasks = await generateDailyPlan(req.user.userId);
-  res.json(tasks);
+  try {
+    const userId = req.user.userId;
+    const today = new Date().toISOString().split("T")[0];
+
+    // Check for existing tasks
+    const { data: existing } = await supabase
+      .from("daily_tasks")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("date", today);
+
+    if (existing && existing.length > 0) {
+      return res.json(existing);
+    }
+
+    // Auto-generate if not exists
+    const result = await generateAILogic(userId);
+
+    if (result.noData) {
+      // Create a notification for the user to upload materials
+      const { data: existingNotif } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("title", "Activate TICHA Daily!")
+        .maybeSingle();
+
+      if (!existingNotif) {
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          title: "Activate TICHA Daily!",
+          content:
+            "Upload some notes or take a practice quiz so I can create a personalized daily study plan for you! 🧠",
+          type: "system",
+          read: false,
+        });
+      }
+      return res.json([]);
+    }
+
+    res.json(result.tasks);
+  } catch (err) {
+    console.error("getTodayTasks error:", err);
+    res.json([]);
+  }
+};
+
+// Internal AI logic to be reused
+const generateAILogic = async (userId) => {
+  const today = new Date().toISOString().split("T")[0];
+
+  // Fetch contextual data
+  const { data: profile } = await supabase
+    .from("student_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  const weaknesses = await getWeakestKnowledgeUnits(userId, 5);
+  const { data: summaries } = await supabase
+    .from("summaries")
+    .select("title, category")
+    .eq("user_id", userId)
+    .limit(3);
+
+  // Check if we have enough data to be "smart"
+  if (
+    (!weaknesses || weaknesses.length === 0) &&
+    (!summaries || summaries.length === 0)
+  ) {
+    return { noData: true };
+  }
+
+  const prompt = `
+Generate 3 personalized daily learning tasks for today: ${today}.
+CONTEXT: Level ${profile?.level || "secondary"}, Subjects ${
+    profile?.subject || "general"
+  }.
+STRENGTHS/WEAKNESSES: ${weaknesses.map((w) => w.concept_title).join(", ")}.
+SUMMARIES: ${summaries.map((s) => s.title).join(", ")}.
+
+Create catchy, high-impact tasks. 
+Return ONLY JSON array: [{ "title": "", "description": "", "estimated_minutes": 20, "task_type": "quiz|practice|review" }]
+`;
+
+  const response = await callLLM({
+    systemPrompt:
+      "You are TICHA AI's Planner. Create precise, motivating study tasks. Return ONLY valid JSON.",
+    userPrompt: prompt,
+  });
+
+  const tasksData = safeJSONParse(response) || [
+    {
+      title: "Power Up",
+      description: "Review your latest concepts",
+      estimated_minutes: 20,
+      task_type: "review",
+    },
+  ];
+
+  const taskRecords = tasksData.slice(0, 3).map((task, idx) => ({
+    user_id: userId,
+    date: today,
+    title: task.title,
+    description: task.description,
+    task_type: task.task_type || "practice",
+    estimated_minutes: task.estimated_minutes || 20,
+    knowledge_unit_id: weaknesses[idx]?.id || null,
+    completed: false,
+  }));
+
+  const { data: insertedTasks } = await supabase
+    .from("daily_tasks")
+    .insert(taskRecords)
+    .select();
+  return { tasks: insertedTasks || taskRecords, generated: true };
 };
 
 export const completeTask = async (req, res) => {
@@ -13,7 +125,6 @@ export const completeTask = async (req, res) => {
     const { taskId } = req.params;
     const userId = req.user.userId;
 
-    // Update the task to mark it completed
     const { data, error } = await supabase
       .from("daily_tasks")
       .update({ completed: true })
@@ -21,132 +132,41 @@ export const completeTask = async (req, res) => {
       .select()
       .single();
 
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-
-    if (!data) {
-      return res.status(404).json({ error: "Task not found" });
-    }
-
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ success: true, task: data });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 };
 
 export const generateAITasks = async (req, res) => {
+  const result = await generateAILogic(req.user.userId);
+  res.json(result);
+};
+
+export const getDailyTip = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const today = new Date().toISOString().split("T")[0];
-
-    // Fetch user profile to personalize tasks
     const { data: profile } = await supabase
       .from("student_profiles")
       .select("*")
       .eq("user_id", userId)
       .single();
 
-    // Get weakest knowledge units
-    const weaknesses = await getWeakestKnowledgeUnits(userId, 5);
+    const prompt = `Give me one catchy, "aha-moment" AI study tip for a student at level: ${
+      profile?.level || "general"
+    }. 
+Keep it under 20 words. Use 1 emoji.
+Format: Just the text of the tip.`;
 
-    // Fetch recent student summaries
-    const { data: summaries } = await supabase
-      .from("summaries")
-      .select("title, category")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(3);
-
-    // Fetch recent AI interactions
-    const { data: interactionHistory } = await supabase
-      .from("tutor_conversations")
-      .select("content")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(5);
-
-    const summariesContext = summaries?.length
-      ? `Recent student notes/summaries: ${summaries
-          .map((s) => `${s.title} (${s.category})`)
-          .join(", ")}`
-      : "";
-
-    const interactionsContext = interactionHistory?.length
-      ? `Recent AI interactions: ${interactionHistory
-          .map((i) => i.content)
-          .join(" | ")}`
-      : "";
-
-    // Use AI to generate personalized task descriptions
-    const prompt = `
-Create 3 engaging, personalized daily learning tasks for a student.
-
-STUDENT PROGRESS CONTEXT:
-- Level: ${profile?.level || "intermediate"}
-- Subject: ${profile?.subject || "general"}
-- Weak areas: ${weaknesses.map((w) => w.concept).join(", ")}
-${summariesContext ? `- ${summariesContext}` : ""}
-${interactionsContext ? `- ${interactionsContext}` : ""}
-
-For each task, provide:
-1. Task title (short, motivating)
-2. Description (clear, actionable, mentioning a specific concept or note above)
-3. Estimated minutes (15-30)
-4. Task type (quiz, practice, review)
-
-Return as JSON array with keys: title, description, estimated_minutes, task_type
-`;
-
-    const response = await callLLM({
+    const tip = await callLLM({
       systemPrompt:
-        "You are an expert educational task designer. Create engaging, achievable learning tasks. (IMPORTANT: Return ONLY valid JSON)",
+        "You are TICHA AI, the cool study mentor. Give snappy, high-value study advice.",
       userPrompt: prompt,
     });
 
-    // Parse AI response
-    const tasksData = safeJSONParse(response) || [
-      {
-        title: "Review Weaknesses",
-        description: "Focus on your weaker concepts",
-        estimated_minutes: 20,
-        task_type: "review",
-      },
-      {
-        title: "Practice Quiz",
-        description: "Test your knowledge",
-        estimated_minutes: 25,
-        task_type: "quiz",
-      },
-      {
-        title: "Study Summary",
-        description: "Review today's lessons",
-        estimated_minutes: 15,
-        task_type: "review",
-      },
-    ];
-
-    // Store tasks in database
-    const taskRecords = tasksData.slice(0, 3).map((task, idx) => ({
-      user_id: userId,
-      date: today,
-      title: task.title,
-      description: task.description,
-      task_type: task.task_type || "practice",
-      estimated_minutes: task.estimated_minutes || 20,
-      knowledge_unit_id: weaknesses[idx]?.id || null,
-      completed: false,
-    }));
-
-    const { data: insertedTasks } = await supabase
-      .from("daily_tasks")
-      .insert(taskRecords)
-      .select();
-
-    res.json({ tasks: insertedTasks || taskRecords, generated: true });
+    res.json({ tip: tip.trim() });
   } catch (err) {
-    console.error("Error generating AI tasks:", err);
-    res.status(500).json({ error: err.message || "Failed to generate tasks" });
+    res.json({ tip: "Space your study sessions to remember more! 🧠" });
   }
 };

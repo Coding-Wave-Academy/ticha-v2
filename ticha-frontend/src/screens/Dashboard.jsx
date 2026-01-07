@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAiTip, setShowAiTip] = useState(true);
+  const [aiTip, setAiTip] = useState("Loading your study tip... 💡");
   const [studentLevel, setStudentLevel] = useState("ol");
   const [hasUploadedCourses, setHasUploadedCourses] = useState(true);
   const [showCoursePrompt, setShowCoursePrompt] = useState(false);
@@ -88,25 +89,28 @@ export default function Dashboard() {
       setLoading(true);
       setError(null);
       try {
-        const data = await apiFetch(`/api/dashboard`);
-        if (!data) {
-          setStreak(0);
-          setNotifications(0);
-          setRecentSummaries([]);
-          return;
+        const [data, tipData] = await Promise.all([
+          apiFetch(`/api/dashboard`),
+          apiFetch(`/api/daily/tip`),
+        ]);
+
+        if (data) {
+          setStreak(data.streak || 0);
+          setNotifications(data.notifications || 0);
+          setRecentSummaries(data.recentSummaries || []);
+          setStudentLevel(data.level || "ol");
+          setHasUploadedCourses(data.hasUploadedCourses);
+
+          if (data.level === "uni" && !data.hasUploadedCourses) {
+            setShowCoursePrompt(true);
+          }
+
+          if (data.full_name) setUserName(data.full_name);
         }
 
-        setStreak(data.streak || 0);
-        setNotifications(data.notifications || 0);
-        setRecentSummaries(data.recentSummaries || []);
-        setStudentLevel(data.level || "ol");
-        setHasUploadedCourses(data.hasUploadedCourses);
-
-        if (data.level === "uni" && !data.hasUploadedCourses) {
-          setShowCoursePrompt(true);
+        if (tipData?.tip) {
+          setAiTip(tipData.tip);
         }
-
-        if (data.full_name) setUserName(data.full_name);
       } catch (err) {
         setError(err.message || "Error fetching dashboard");
       } finally {
@@ -215,10 +219,7 @@ export default function Dashboard() {
               >
                 AI Study Tip
               </div>
-              <div style={{ fontSize: "14px", fontWeight: "700" }}>
-                Try the "Feynman Technique": explain the concept to me as if I
-                were a 5-year old.
-              </div>
+              <div style={{ fontSize: "14px", fontWeight: "700" }}>{aiTip}</div>
             </div>
           </div>
         )}
