@@ -15,6 +15,13 @@ export default function SummaryPage() {
   const [history, setHistory] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Flashcard states
+  const [view, setView] = useState("summary"); // summary, flashcards
+  const [flashcards, setFlashcards] = useState([]);
+  const [currentCardIdx, setCurrentCardIdx] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [fetchingCards, setFetchingCards] = useState(false);
+
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -35,7 +42,6 @@ export default function SummaryPage() {
       const data = await apiFetch("/api/materials/summaries/history");
       setHistory(data);
 
-      // If ID is present in URL, find and load it
       if (id && data.length > 0) {
         const item = data.find((s) => s.id === id);
         if (item) {
@@ -53,6 +59,9 @@ export default function SummaryPage() {
 
   useEffect(() => {
     fetchHistory();
+    // Reset view when ID changes
+    setView("summary");
+    setFlashcards([]);
   }, [id]);
 
   const generateSummary = async () => {
@@ -73,6 +82,7 @@ export default function SummaryPage() {
       showToast("Summary generated successfully!", { type: "success" });
       setIsUploading(false);
       fetchHistory();
+      navigate(`/summary/${data.id}`);
     } catch (err) {
       console.error(err);
       showToast("Failed to generate summary.", { type: "error" });
@@ -81,9 +91,97 @@ export default function SummaryPage() {
     }
   };
 
+  const loadFlashcards = async () => {
+    if (flashcards.length > 0) {
+      setView("flashcards");
+      return;
+    }
+
+    setFetchingCards(true);
+    try {
+      const data = await apiFetch(`/api/materials/${id}/flashcards`);
+      setFlashcards(data);
+      setView("flashcards");
+      setCurrentCardIdx(0);
+      setShowAnswer(false);
+    } catch (err) {
+      showToast("Failed to load flashcards", { type: "error" });
+    } finally {
+      setFetchingCards(false);
+    }
+  };
+
+  const renderFlashcards = () => {
+    if (flashcards.length === 0) return null;
+    const card = flashcards[currentCardIdx];
+
+    return (
+      <div className="flashcards-view">
+        <div className="flashcard-progress">
+          Card {currentCardIdx + 1} of {flashcards.length}
+        </div>
+
+        <div
+          className={`flashcard-item ${showAnswer ? "flipped" : ""}`}
+          onClick={() => setShowAnswer(!showAnswer)}
+        >
+          <div className="flashcard-inner">
+            <div className="flashcard-front">
+              <div className="card-type">QUESTION</div>
+              <p>{card.question}</p>
+              <div className="tap-hint">Tap to flip 🔄</div>
+            </div>
+            <div className="flashcard-back">
+              <div className="card-type">ANSWER</div>
+              <p>{card.answer}</p>
+              <div className="tap-hint">Tap to go back 🔄</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flashcard-controls">
+          <button
+            className="btn-card"
+            disabled={currentCardIdx === 0}
+            onClick={() => {
+              setCurrentCardIdx(currentCardIdx - 1);
+              setShowAnswer(false);
+            }}
+          >
+            ← PREV
+          </button>
+
+          {currentCardIdx < flashcards.length - 1 ? (
+            <button
+              className="btn-card next"
+              onClick={() => {
+                setCurrentCardIdx(currentCardIdx + 1);
+                setShowAnswer(false);
+              }}
+            >
+              NEXT →
+            </button>
+          ) : (
+            <button
+              className="btn-card finish"
+              onClick={() => setView("summary")}
+            >
+              FINISH ✨
+            </button>
+          )}
+        </div>
+
+        <button className="back-link" onClick={() => setView("summary")}>
+          Back to Summary
+        </button>
+      </div>
+    );
+  };
+
   const loadSummary = (item) => {
     navigate(`/summary/${item.id}`);
     setIsUploading(false);
+    setView("summary");
   };
 
   return (
@@ -91,14 +189,25 @@ export default function SummaryPage() {
       <div className="summary-page">
         <div className="summary-header">
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => {
+              if (view === "flashcards") {
+                setView("summary");
+              } else if (summaryData) {
+                setSummaryData(null);
+                navigate("/summaries");
+              } else {
+                navigate("/dashboard");
+              }
+            }}
             className="back-button-new"
           >
             ←
           </button>
           <h1>
-            {isUploading
+            {isUploading && !summaryData
               ? "IMPORT NOTES"
+              : view === "flashcards"
+              ? "FLASHCARDS"
               : summaryData
               ? "SUMMARY"
               : "MY SUMMARIES"}
@@ -224,6 +333,7 @@ export default function SummaryPage() {
                   border: "none",
                   textDecoration: "underline",
                   fontWeight: 700,
+                  cursor: "pointer",
                 }}
               >
                 Cancel
@@ -232,32 +342,22 @@ export default function SummaryPage() {
           </div>
         )}
 
-        {summaryData && !isUploading && (
+        {summaryData && !isUploading && view === "summary" && (
           <>
             <div className="summary-actions">
               <button
                 className="action-btn"
-                onClick={() =>
-                  navigate("/practice", { state: { type: "flashcards" } })
-                }
+                disabled={fetchingCards}
+                onClick={loadFlashcards}
               >
-                🎴 Flashcards
+                {fetchingCards ? "⏳..." : "🎴 Flashcards"}
               </button>
+              <button className="action-btn disabled">🧠 Mindmaps</button>
               <button
                 className="action-btn"
-                onClick={() =>
-                  navigate("/practice", { state: { type: "mindmap" } })
-                }
+                onClick={() => navigate("/practice")}
               >
-                🧠 Mindmaps
-              </button>
-              <button
-                className="action-btn"
-                onClick={() =>
-                  navigate("/practice", { state: { type: "quiz" } })
-                }
-              >
-                📝 Practice Quiz
+                📝 Quiz Quest
               </button>
             </div>
 
@@ -331,7 +431,9 @@ export default function SummaryPage() {
           </>
         )}
 
-        {!isUploading && (
+        {view === "flashcards" && renderFlashcards()}
+
+        {!isUploading && !summaryData && (
           <div className="fab-button" onClick={() => setIsUploading(true)}>
             +
           </div>

@@ -6,6 +6,7 @@ import {
   processMaterial,
   generateSummary,
   listSummaries,
+  generateFlashcards,
 } from "../controllers/material.controller.js";
 
 import multer from "multer";
@@ -17,6 +18,7 @@ const router = express.Router();
 
 router.post("/", protect, upload.single("file"), uploadMaterial);
 router.get("/", protect, listMaterials);
+router.get("/:id/flashcards", protect, generateFlashcards);
 router.post(
   "/summary/generate",
   protect,

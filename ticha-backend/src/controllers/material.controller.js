@@ -282,3 +282,42 @@ export const deleteSummary = async (req, res) => {
     res.status(500).json({ error: "Failed to delete summary" });
   }
 };
+export const generateFlashcards = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data: summary } = await supabase
+      .from("summaries")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (!summary) return res.status(404).json({ error: "Summary not found" });
+
+    const content =
+      typeof summary.content === "string"
+        ? JSON.parse(summary.content)
+        : summary.content;
+
+    const prompt = `
+Generate 5 high-quality flashcards based on this study summary:
+Title: ${summary.title}
+Content: ${JSON.stringify(content)}
+
+Focus on key concepts and definitions.
+Return ONLY a JSON array of objects with "question" and "answer" keys.
+`;
+
+    const response = await callLLM({
+      systemPrompt:
+        "You are an expert at creating active recall flashcards. (IMPORTANT: Return ONLY valid JSON)",
+      userPrompt: prompt,
+      preferredProvider: "grok",
+    });
+
+    const cards = safeJSONParse(response);
+    res.json(cards);
+  } catch (err) {
+    console.error("Flashcard generation error:", err);
+    res.status(500).json({ error: "Failed to generate flashcards" });
+  }
+};
